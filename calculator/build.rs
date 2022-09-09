@@ -7,9 +7,9 @@ fn main() {
     use std::env;
     let out_dir = env::var("OUT_DIR").unwrap();
 
-    let mut out_str = String::from("");
+    let mut out_str = String::from("use types::Material::*;\n\n");
     let mut map_str = String::from(
-        "lazy_static::lazy_static!{\n\tstatic ref MAP: HashMap<char, &'static str> = vec![\n",
+        "lazy_static::lazy_static!{\n\tstatic ref MAP: std::collections::HashMap<String, Structure> = vec![\n",
     );
 
     // TODO: Actually handle these errors
@@ -34,13 +34,13 @@ fn main() {
 
         out_str.push_str(&const_string);
         map_str.push_str(&format!(
-            "\t\t(\"{}\", {}),\n",
+            "\t\t(\"{}\".to_string(), {}),\n",
             structure.name.clone(),
             struct_name
         ));
     }
 
-    map_str.push_str("\t].into_iter().collect();");
+    map_str.push_str("\t].into_iter().collect();\n}");
 
     // out_str.push_str("\n");
     out_str.push_str(&map_str);
