@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "calculator",
+    "types"
+]

@@ -1,0 +1,13 @@
+name = "Struture A"
+
+[[build_costs]]
+material = "BasicMaterials"
+cost = 100
+
+[[inputs]]
+material = "Scrap"
+value = 100
+
+[[outputs]]
+material = "ConstructionMaterials"
+value = 100
