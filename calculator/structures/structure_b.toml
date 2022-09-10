@@ -1,4 +1,5 @@
 name = "Struture B"
+power = 4
 
 [[build_costs]]
 material = "BasicMaterials"

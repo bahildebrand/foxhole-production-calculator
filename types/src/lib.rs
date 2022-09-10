@@ -28,6 +28,7 @@ pub struct Output {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Structure {
     pub name: String,
+    pub power: u64,
     pub build_costs: Vec<BuildCost>,
     pub inputs: Vec<Input>,
     pub outputs: Vec<Output>,
