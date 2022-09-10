@@ -118,7 +118,10 @@ mod test {
             Structure::new(
                 "structure_c".to_string(),
                 1,
-                vec![BuildCost::new(Material::BasicMaterials, 1)],
+                vec![
+                    BuildCost::new(Material::BasicMaterials, 1),
+                    BuildCost::new(Material::ConstructionMaterials, 1),
+                ],
                 vec![
                     Input::new(Material::ConstructionMaterials, 1),
                     Input::new(Material::Coke, 1),
@@ -161,9 +164,12 @@ mod test {
         .into_iter()
         .collect::<HashMap<String, f32>>();
 
-        let build_cost = vec![(Material::BasicMaterials, 30)]
-            .into_iter()
-            .collect::<HashMap<Material, u64>>();
+        let build_cost = vec![
+            (Material::BasicMaterials, 30),
+            (Material::ConstructionMaterials, 10),
+        ]
+        .into_iter()
+        .collect::<HashMap<Material, u64>>();
 
         let expected_reqs = FactoryRequirements {
             buildings,
