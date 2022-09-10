@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use types::Structure;
 
 fn main() {
@@ -25,7 +27,7 @@ fn main() {
 
         let structure: Structure = toml::from_str(&toml_string).unwrap();
 
-        let struct_name = file_name.split(".").collect::<Vec<_>>()[0].to_uppercase();
+        let struct_name = file_name.split('.').collect::<Vec<_>>()[0].to_uppercase();
         let const_string = format!(
             "const {}: Structure = {:#?};\n\n",
             struct_name.clone(),
@@ -33,11 +35,13 @@ fn main() {
         );
 
         out_str.push_str(&const_string);
-        map_str.push_str(&format!(
-            "\t\t(\"{}\".to_string(), {}),\n",
+        writeln!(
+            &mut map_str,
+            "\t\t(\"{}\".to_string(), &{}),",
             structure.name.clone(),
             struct_name
-        ));
+        )
+        .expect("Failed to write to cod generation string");
     }
 
     map_str.push_str("\t].into_iter().collect();\n}");
