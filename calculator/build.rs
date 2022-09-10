@@ -1,3 +1,4 @@
+use std::env;
 use std::fmt::Write;
 
 use types::Structure;
@@ -6,12 +7,14 @@ fn main() {
     println!("cargo:rerun-if-changed=structures/");
     println!("cargo:rerun-if-changed=build.rs");
 
-    use std::env;
     let out_dir = env::var("OUT_DIR").unwrap();
 
-    let mut out_str = String::from("use types::Material::*;\n\n");
-    let mut map_str = String::from(
-        "lazy_static::lazy_static!{\n\tstatic ref MAP: std::collections::HashMap<String, Structure> = vec![\n",
+    let mut out_str = String::from("lazy_static::lazy_static!{\n");
+    let mut structure_map_str = String::from(
+        "\tstatic ref STRUCTURE_MAP: std::collections::HashMap<String, Structure> = vec![\n",
+    );
+    let mut output_map_str = String::from(
+        "\tstatic ref OUTPUT_MAP: std::collections::HashMap<Material, Structure> = vec![\n",
     );
 
     // TODO: Actually handle these errors
@@ -29,24 +32,41 @@ fn main() {
 
         let struct_name = file_name.split('.').collect::<Vec<_>>()[0].to_uppercase();
         let const_string = format!(
-            "const {}: Structure = {:#?};\n\n",
+            "\tstatic ref {}: Structure = {:#?};\n\n",
             struct_name.clone(),
             structure
         );
 
         out_str.push_str(&const_string);
+
+        // The below cloning of the static variable is pretty wasteful, I need
+        // to find a better way to do this code generation, but this works for
+        // now.
+        // Add structure mapping entry
         writeln!(
-            &mut map_str,
-            "\t\t(\"{}\".to_string(), &{}),",
+            &mut structure_map_str,
+            "\t\t(\"{}\".to_string(), (*{}).clone()),",
             structure.name.clone(),
             struct_name
         )
-        .expect("Failed to write to cod generation string");
+        .expect("Failed to write to code generation string");
+
+        // Add output mapping entry
+        for output in structure.outputs {
+            writeln!(
+                &mut output_map_str,
+                "\t\t({:?}, (*{}).clone()),",
+                output.material, struct_name
+            )
+            .expect("Failed to write to code generation string");
+        }
     }
 
-    map_str.push_str("\t].into_iter().collect();\n}");
+    structure_map_str.push_str("\t].into_iter().collect();\n\n");
+    output_map_str.push_str("\t].into_iter().collect();\n");
 
-    // out_str.push_str("\n");
-    out_str.push_str(&map_str);
+    out_str.push_str(&structure_map_str);
+    out_str.push_str(&output_map_str);
+    out_str.push_str("\n}");
     std::fs::write(format!("{out_dir}/structures.rs"), out_str).unwrap();
 }
