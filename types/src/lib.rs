@@ -5,6 +5,14 @@ pub enum Material {
     BasicMaterials,
     Scrap,
     ConstructionMaterials,
+    ProcessedConstructionMaterials,
+    RefinedOil,
+    Petrol,
+    Coal,
+    Coke,
+    HeavyExplosiveMaterials,
+    Napalm,
+    Components,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

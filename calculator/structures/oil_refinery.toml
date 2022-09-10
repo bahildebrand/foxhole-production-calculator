@@ -1,0 +1,14 @@
+name = "Oil Refinery"
+power = 1
+
+[[build_costs]]
+material = "ConstructionMaterials"
+cost = 50
+
+[[inputs]]
+material = "RefinedOil"
+value = 150
+
+[[outputs]]
+material = "Petrol"
+value = 150

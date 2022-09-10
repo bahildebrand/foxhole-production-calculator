@@ -1,0 +1,14 @@
+name = "Coal Refinery"
+power = 3
+
+[[build_costs]]
+material = "ConstructionMaterials"
+cost = 50
+
+[[inputs]]
+material = "Coal"
+value = 200
+
+[[outputs]]
+material = "Coke"
+value = 180

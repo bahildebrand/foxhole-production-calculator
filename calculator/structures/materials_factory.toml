@@ -1,0 +1,14 @@
+name = "Materials Factory"
+power = 2
+
+[[build_costs]]
+material = "BasicMaterials"
+cost = 200
+
+[[inputs]]
+material = "Scrap"
+value = 20
+
+[[outputs]]
+material = "ConstructionMaterials"
+value = 1
