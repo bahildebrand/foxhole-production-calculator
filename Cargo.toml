@@ -2,5 +2,6 @@
 
 members = [
     "calculator",
-    "types"
+    "types",
+    "foxhole-production-calculator-cli"
 ]
