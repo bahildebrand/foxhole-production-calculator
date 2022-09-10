@@ -23,16 +23,34 @@ pub struct BuildCost {
     pub cost: u64,
 }
 
+impl BuildCost {
+    pub fn new(material: Material, cost: u64) -> Self {
+        Self { material, cost }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Input {
     pub material: Material,
     pub value: u64,
 }
 
+impl Input {
+    pub fn new(material: Material, value: u64) -> Self {
+        Self { material, value }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Output {
     pub material: Material,
     pub value: u64,
+}
+
+impl Output {
+    pub fn new(material: Material, value: u64) -> Self {
+        Self { material, value }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -42,6 +60,24 @@ pub struct Structure {
     pub build_costs: Vec<BuildCost>,
     pub inputs: Vec<Input>,
     pub outputs: Vec<Output>,
+}
+
+impl Structure {
+    pub fn new(
+        name: String,
+        power: u64,
+        build_costs: Vec<BuildCost>,
+        inputs: Vec<Input>,
+        outputs: Vec<Output>,
+    ) -> Self {
+        Self {
+            name,
+            power,
+            build_costs,
+            inputs,
+            outputs,
+        }
+    }
 }
 
 impl fmt::Debug for Structure {
