@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 use types::Material::{self, *};
 use types::{BuildCost, Input, Output, Structure};
@@ -36,24 +36,28 @@ impl ResourceGraph {
         let mut power = 0;
         let mut build_costs = HashMap::new();
 
-        let mut current_input = output;
-        let mut current_rate = rate;
-        while let Some(structure) = self.output_map.get(&current_input) {
-            // FIXME: This sucks, change outputs to be a map
-            for output in &structure.outputs {
-                if current_input == output.material {
-                    let building_count = current_rate as f32 / output.value as f32;
+        let mut queue = VecDeque::new();
+        queue.push_back((output, rate));
+        while let Some((current_input, current_rate)) = queue.pop_front() {
+            let structure = self.output_map.get(&current_input);
 
-                    let entry = buildings.entry(structure.name.clone()).or_default();
-                    *entry += building_count;
+            if let Some(structure) = structure {
+                // FIXME: This sucks, change outputs to be a map
+                for output in &structure.outputs {
+                    if current_input == output.material {
+                        let building_count = current_rate as f32 / output.value as f32;
 
-                    break;
+                        let entry = buildings.entry(structure.name.clone()).or_default();
+                        *entry += building_count;
+
+                        break;
+                    }
+                }
+
+                for input in &structure.inputs {
+                    queue.push_back((input.material, input.value));
                 }
             }
-
-            // TODO: Handle multi-input
-            current_input = structure.inputs[0].material;
-            current_rate = structure.inputs[0].value;
         }
 
         for (building, count) in &buildings {
