@@ -11,10 +11,10 @@ fn main() {
 
     let mut out_str = String::from("lazy_static::lazy_static!{\n");
     let mut structure_map_str = String::from(
-        "\tstatic ref STRUCTURE_MAP: std::collections::HashMap<String, Structure> = vec![\n",
+        "\tstatic ref STRUCTURE_MAP: std::collections::HashMap<String, &'static Structure> = vec![\n",
     );
     let mut output_map_str = String::from(
-        "\tstatic ref OUTPUT_MAP: std::collections::HashMap<Material, Structure> = vec![\n",
+        "\tstatic ref OUTPUT_MAP: std::collections::HashMap<Material, &'static Structure> = vec![\n",
     );
 
     // TODO: Actually handle these errors
@@ -39,13 +39,10 @@ fn main() {
 
         out_str.push_str(&const_string);
 
-        // The below cloning of the static variable is pretty wasteful, I need
-        // to find a better way to do this code generation, but this works for
-        // now.
         // Add structure mapping entry
         writeln!(
             &mut structure_map_str,
-            "\t\t(\"{}\".to_string(), (*{}).clone()),",
+            "\t\t(\"{}\".to_string(), &*{}),",
             structure.name.clone(),
             struct_name
         )
@@ -55,7 +52,7 @@ fn main() {
         for output in structure.outputs {
             writeln!(
                 &mut output_map_str,
-                "\t\t({:?}, (*{}).clone()),",
+                "\t\t({:?}, &*{}),",
                 output.material, struct_name
             )
             .expect("Failed to write to code generation string");
