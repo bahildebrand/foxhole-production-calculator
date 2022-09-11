@@ -2,6 +2,10 @@
 name = "foxhole-production-calculator-cli"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "API to calculate buildings and resources needed for building production facilities."
+repository = "https://github.com/bahildebrand/foxhole-production-calculator/tree/master/foxhole-production-calculator-cli"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
