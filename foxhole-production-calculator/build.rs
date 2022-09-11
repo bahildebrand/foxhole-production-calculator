@@ -1,7 +1,7 @@
 use std::env;
 use std::fmt::Write;
 
-use types::Structure;
+use foxhole_production_calculator_types::Structure;
 
 fn main() {
     println!("cargo:rerun-if-changed=structures/");

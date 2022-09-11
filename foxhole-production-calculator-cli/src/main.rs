@@ -1,6 +1,6 @@
 use clap::Parser;
 use foxhole_production_calculator::ResourceGraph;
-use types::Material;
+use foxhole_production_calculator_types::Material;
 
 /// Command utility for calculating the most efficient factory configuration for
 /// a target output.

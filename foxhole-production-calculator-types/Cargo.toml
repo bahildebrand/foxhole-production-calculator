@@ -1,5 +1,5 @@
 [package]
-name = "types"
+name = "foxhole-production-calculator-types"
 version = "0.1.0"
 edition = "2021"
 

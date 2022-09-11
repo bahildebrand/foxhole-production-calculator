@@ -1,7 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 
-use types::Material::{self, *};
-use types::{BuildCost, Input, Output, Structure};
+use foxhole_production_calculator_types::Material::{self, *};
+use foxhole_production_calculator_types::{BuildCost, Input, Output, Structure};
 
 include!(concat!(env!("OUT_DIR"), "/structures.rs"));
 
@@ -103,7 +103,7 @@ impl<'a> ResourceGraph<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use types::BuildCost;
+    use foxhole_production_calculator_types::BuildCost;
 
     fn build_structures() -> Vec<Structure> {
         vec![

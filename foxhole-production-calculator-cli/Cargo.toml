@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 foxhole-production-calculator = { path = "../foxhole-production-calculator", version = "0.1" }
 clap = { version = "3.2", features = ["derive"] }
-types = { path="../types", version = "0.1" }
+foxhole-production-calculator-types = { path="../foxhole-production-calculator-types", version = "0.1" }
