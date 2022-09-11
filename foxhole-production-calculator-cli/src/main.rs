@@ -11,7 +11,7 @@ struct Args {
     #[clap(arg_enum, value_parser)]
     material: Material,
 
-    /// Specifies the desired rate of output for the given material.
+    /// Specifies the desired rate of output for the given material. [Unit/Hour]
     #[clap(value_parser)]
     rate: u64,
 }
