@@ -1,5 +1,6 @@
 name = "Oil Refinery"
 power = 1
+rate = 150
 
 [[build_costs]]
 material = "ConstructionMaterials"

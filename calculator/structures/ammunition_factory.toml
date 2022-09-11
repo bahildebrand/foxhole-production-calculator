@@ -1,5 +1,6 @@
 name = "Ammunition Factory"
 power = 4
+rate = 25
 
 [[build_costs]]
 material = "ConstructionMaterials"

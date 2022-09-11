@@ -38,6 +38,9 @@ impl<'a> ResourceGraph<'a> {
         }
     }
 
+    /// Calculate factory requirements given a material and a rate.
+    ///
+    /// Rate is assumed to be unit/hour.
     pub fn calculate_factory_requirements(
         &self,
         output: Material,
@@ -57,7 +60,7 @@ impl<'a> ResourceGraph<'a> {
                 let mut building_count = 0.0f32;
                 for output in &structure.outputs {
                     if current_input == output.material {
-                        building_count = current_rate as f32 / output.value as f32;
+                        building_count = current_rate as f32 / structure.hourly_rate(output.value);
 
                         let entry = buildings.entry(structure.name.clone()).or_default();
                         *entry += building_count;
@@ -67,7 +70,10 @@ impl<'a> ResourceGraph<'a> {
                 }
 
                 for input in &structure.inputs {
-                    queue.push_back((input.material, input.value as f32 * building_count));
+                    queue.push_back((
+                        input.material,
+                        structure.hourly_rate(input.value) * building_count,
+                    ));
                 }
             }
         }
@@ -104,6 +110,7 @@ mod test {
             Structure::new(
                 "structure_a".to_string(),
                 1,
+                1,
                 vec![BuildCost::new(Material::BasicMaterials, 1)],
                 vec![Input::new(Material::Salvage, 1)],
                 vec![Output::new(Material::ConstructionMaterials, 1)],
@@ -111,12 +118,14 @@ mod test {
             Structure::new(
                 "structure_b".to_string(),
                 1,
+                1,
                 vec![BuildCost::new(Material::BasicMaterials, 1)],
                 vec![Input::new(Material::Coal, 1)],
                 vec![Output::new(Material::Coke, 1)],
             ),
             Structure::new(
                 "structure_c".to_string(),
+                1,
                 1,
                 vec![
                     BuildCost::new(Material::BasicMaterials, 1),
@@ -154,7 +163,8 @@ mod test {
 
         let rg = ResourceGraph::new(&structure_map, &output_map);
 
-        let reqs = rg.calculate_factory_requirements(Material::ProcessedConstructionMaterials, 10);
+        let reqs =
+            rg.calculate_factory_requirements(Material::ProcessedConstructionMaterials, 36000);
 
         let buildings = vec![
             ("structure_b".to_string(), 10.0),
