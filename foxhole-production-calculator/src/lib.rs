@@ -62,7 +62,7 @@ impl<'a> ResourceGraph<'a> {
                     if current_input == output.material {
                         building_count = current_rate as f32 / structure.hourly_rate(output.value);
 
-                        let entry = buildings.entry(structure.name.clone()).or_default();
+                        let entry: &mut f32 = buildings.entry(structure.name.clone()).or_default();
                         *entry += building_count;
 
                         break;
@@ -84,11 +84,11 @@ impl<'a> ResourceGraph<'a> {
                 .get(building)
                 .expect("Structure should exist");
 
-            power += (structure.power as f32 * count).ceil() as u64;
+            power += structure.power * count.ceil() as u64;
             for build_cost in &structure.build_costs {
                 let entry = build_costs.entry(build_cost.material).or_default();
 
-                *entry += (build_cost.cost as f32 * count).ceil() as u64;
+                *entry += build_cost.cost * count.ceil() as u64;
             }
         }
 
