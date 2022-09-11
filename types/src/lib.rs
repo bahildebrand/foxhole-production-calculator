@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 )]
 pub enum Material {
     BasicMaterials,
-    Scrap,
+    Salvage,
     ConstructionMaterials,
     ProcessedConstructionMaterials,
     RefinedOil,

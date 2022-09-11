@@ -6,7 +6,7 @@ material = "BasicMaterials"
 cost = 200
 
 [[inputs]]
-material = "Scrap"
+material = "Salvage"
 value = 20
 
 [[outputs]]

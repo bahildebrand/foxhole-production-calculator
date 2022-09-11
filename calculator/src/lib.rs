@@ -105,7 +105,7 @@ mod test {
                 "structure_a".to_string(),
                 1,
                 vec![BuildCost::new(Material::BasicMaterials, 1)],
-                vec![Input::new(Material::Scrap, 1)],
+                vec![Input::new(Material::Salvage, 1)],
                 vec![Output::new(Material::ConstructionMaterials, 1)],
             ),
             Structure::new(
