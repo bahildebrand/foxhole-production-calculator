@@ -4,7 +4,7 @@ CLI for the foxhole production calculator.
 
 ## Installation Instructions
 
-The suggested installation method is using [Cargo](). If you do not have cargo installed follow the instructions for your OS at [rustup.rs](https://rustup.rs/).
+The suggested installation method is using [Cargo](https://doc.rust-lang.org/cargo/). If you do not have cargo installed follow the instructions for your OS at [rustup.rs](https://rustup.rs/).
 
 After you have cargo installed run the following command:
 ```
