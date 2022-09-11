@@ -26,15 +26,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
-name = "calculator"
-version = "0.1.0"
-dependencies = [
- "lazy_static",
- "toml",
- "types",
-]
-
-[[package]]
 name = "clap"
 version = "3.2.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -74,11 +65,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "foxhole-production-calculator"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "toml",
+ "types",
+]
+
+[[package]]
 name = "foxhole-production-calculator-cli"
 version = "0.1.0"
 dependencies = [
- "calculator",
  "clap",
+ "foxhole-production-calculator",
  "types",
 ]
 

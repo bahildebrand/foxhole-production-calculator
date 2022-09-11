@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-calculator = { path = "../calculator", version = "0.1" }
+foxhole-production-calculator = { path = "../foxhole-production-calculator", version = "0.1" }
 clap = { version = "3.2", features = ["derive"] }
 types = { path="../types", version = "0.1" }

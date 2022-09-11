@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-    "calculator",
+    "foxhole-production-calculator",
     "types",
     "foxhole-production-calculator-cli"
 ]
