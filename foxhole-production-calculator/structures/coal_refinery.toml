@@ -13,3 +13,18 @@ value = 200
 [[outputs]]
 material = "Coke"
 value = 180
+
+[[upgrades]]
+name = "Oil Reformer"
+power = 1
+rate = 150
+inputs = [
+    { material = "Oil", value = 120 },
+    { material = "Water", value = 30 }
+]
+outputs = [
+    { material = "Petrol", value = 150 }
+]
+build_costs = [
+    { material = "ConstructionMaterials", cost = 200 }
+]

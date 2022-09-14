@@ -11,13 +11,14 @@ pub enum Material {
     Salvage,
     ConstructionMaterials,
     ProcessedConstructionMaterials,
-    RefinedOil,
+    Oil,
     Petrol,
     Coal,
     Coke,
     HeavyExplosiveMaterials,
     Napalm,
     Components,
+    Water,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -57,6 +58,34 @@ impl Output {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+pub struct ProductionChannel {
+    pub name: String,
+    pub power: u64,
+    /// Rate of production in seconds.
+    pub rate: u64,
+    pub build_costs: Vec<BuildCost>,
+    pub inputs: Vec<Input>,
+    pub outputs: Vec<Output>,
+}
+
+// FIXME: This is a brain dead way to generate code. God help me.
+impl fmt::Debug for ProductionChannel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ProductionChannel")
+            .field("name", &format_args!("String::from({:?})", &self.name))
+            .field("power", &self.power)
+            .field("rate", &self.rate)
+            .field(
+                "build_costs",
+                &format_args!("{:?}.to_vec()", &self.build_costs),
+            )
+            .field("inputs", &format_args!("{:#?}.to_vec()", &self.inputs))
+            .field("outputs", &format_args!("{:#?}.to_vec()", &self.outputs))
+            .finish()
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Structure {
     /// Name of the structure.
     pub name: String,
@@ -67,6 +96,7 @@ pub struct Structure {
     pub build_costs: Vec<BuildCost>,
     pub inputs: Vec<Input>,
     pub outputs: Vec<Output>,
+    pub upgrades: Vec<ProductionChannel>,
 }
 
 impl Structure {
@@ -79,6 +109,7 @@ impl Structure {
         build_costs: Vec<BuildCost>,
         inputs: Vec<Input>,
         outputs: Vec<Output>,
+        upgrades: Vec<ProductionChannel>,
     ) -> Self {
         Self {
             name,
@@ -87,6 +118,7 @@ impl Structure {
             build_costs,
             inputs,
             outputs,
+            upgrades,
         }
     }
 
@@ -97,6 +129,7 @@ impl Structure {
     }
 }
 
+// This is also brain dead. God help me here too.
 impl fmt::Debug for Structure {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Structure")
@@ -109,6 +142,7 @@ impl fmt::Debug for Structure {
             )
             .field("inputs", &format_args!("{:#?}.to_vec()", &self.inputs))
             .field("outputs", &format_args!("{:#?}.to_vec()", &self.outputs))
+            .field("upgrades", &format_args!("{:#?}.to_vec()", self.upgrades))
             .finish()
     }
 }

@@ -1,7 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 
 use foxhole_production_calculator_types::Material::{self, *};
-use foxhole_production_calculator_types::{BuildCost, Input, Output, Structure};
+use foxhole_production_calculator_types::{BuildCost, Input, Output, ProductionChannel, Structure};
 
 include!(concat!(env!("OUT_DIR"), "/structures.rs"));
 
@@ -114,6 +114,7 @@ mod test {
                 vec![BuildCost::new(Material::BasicMaterials, 1)],
                 vec![Input::new(Material::Salvage, 1)],
                 vec![Output::new(Material::ConstructionMaterials, 1)],
+                vec![],
             ),
             Structure::new(
                 "structure_b".to_string(),
@@ -122,6 +123,7 @@ mod test {
                 vec![BuildCost::new(Material::BasicMaterials, 1)],
                 vec![Input::new(Material::Coal, 1)],
                 vec![Output::new(Material::Coke, 1)],
+                vec![],
             ),
             Structure::new(
                 "structure_c".to_string(),
@@ -136,6 +138,7 @@ mod test {
                     Input::new(Material::Coke, 1),
                 ],
                 vec![Output::new(Material::ProcessedConstructionMaterials, 1)],
+                vec![],
             ),
         ]
     }
