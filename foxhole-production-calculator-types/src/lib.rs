@@ -19,6 +19,10 @@ pub enum Material {
     Napalm,
     Components,
     Water,
+    HeavyOil,
+    EnrichedOil,
+    Sulfur,
+    SteelConstructionMaterials,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -60,7 +64,7 @@ impl Output {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ProductionChannel {
     pub name: String,
-    pub power: u64,
+    pub power: f32,
     /// Rate of production in seconds.
     pub rate: u64,
     pub build_costs: Vec<BuildCost>,

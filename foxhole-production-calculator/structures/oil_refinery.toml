@@ -15,7 +15,7 @@ material = "Petrol"
 value = 150
 
 [[upgrades]]
-name = "Oil Reformer"
+name = "Reformer"
 power = 1
 rate = 150
 inputs = [
@@ -27,4 +27,33 @@ outputs = [
 ]
 build_costs = [
     { material = "ConstructionMaterials", cost = 200 }
+]
+
+[[upgrades]]
+name = "Cracking Unit"
+power = 1.5
+rate = 160
+inputs = [
+    { material = "Oil", value = 150 },
+]
+outputs = [
+    { material = "HeavyOil", value = 90 }
+]
+build_costs = [
+    { material = "ProcessedConstructionMaterials", cost = 20 }
+]
+
+[[upgrades]]
+name = "Petrochemical Plant"
+power = 2
+rate = 150
+inputs = [
+    { material = "Sulfur", value = 20 },
+    { material = "HeavyOil", value = 90 }
+]
+outputs = [
+    { material = "EnrichedOil", value = 90 }
+]
+build_costs = [
+    { material = "SteelConstructionMaterials", cost = 25 }
 ]
