@@ -23,6 +23,7 @@ pub enum Material {
     EnrichedOil,
     Sulfur,
     SteelConstructionMaterials,
+    ConcreteMaterials,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

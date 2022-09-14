@@ -14,6 +14,7 @@ value = 20
 material = "ConstructionMaterials"
 value = 1
 
+# Upgrades here need to have multiple routes
 [[upgrades]]
 name = "Oil Reformer"
 power = 1

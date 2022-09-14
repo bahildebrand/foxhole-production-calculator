@@ -15,16 +15,48 @@ material = "Coke"
 value = 180
 
 [[upgrades]]
-name = "Oil Reformer"
-power = 1
-rate = 150
+name = "Coke Furnace"
+power = 3
+rate = 120
 inputs = [
-    { material = "Oil", value = 120 },
-    { material = "Water", value = 30 }
+    { material = "Coal", value = 200 },
 ]
 outputs = [
-    { material = "Petrol", value = 150 }
+    { material = "Coke", value = 165 },
+    { material = "Sulfur", value = 15 }
 ]
 build_costs = [
     { material = "ConstructionMaterials", cost = 200 }
+]
+
+[[upgrades]]
+name = "Coal Liquefier"
+power = 4
+rate = 120
+inputs = [
+    { material = "Coal", value = 300 },
+    { material = "Water", value = 75 },
+]
+outputs = [
+    { material = "ConcreteMaterials", value = 1 },
+    { material = "Oil", value = 50 }
+]
+build_costs = [
+    { material = "ProcessedConstructionMaterials", cost = 200 }
+]
+
+[[upgrades]]
+name = "Advanced Coal Liquefier"
+power = 4
+rate = 120
+inputs = [
+    { material = "Coal", value = 300 },
+    { material = "Water", value = 150 },
+]
+outputs = [
+    { material = "Coke", value = 260 },
+    { material = "HeavyOil", value = 60 }
+]
+build_costs = [
+    { material = "SteelConstructionMaterials", cost = 200 }
 ]
