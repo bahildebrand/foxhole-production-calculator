@@ -1,21 +1,23 @@
+[default_upgrade]
 name = "Oil Refinery"
+
+[[default_upgrade.production_channels]]
 power = 1
 rate = 150
+build_costs = [
+    { material = "ConstructionMaterials", cost = 50 }
+]
+inputs = [
+    { material = "Oil", value = 150 }
+]
+outputs = [
+    { material = "Petrol", value = 150 }
+]
 
-[[build_costs]]
-material = "ConstructionMaterials"
-cost = 50
-
-[[inputs]]
-material = "Oil"
-value = 150
-
-[[outputs]]
-material = "Petrol"
-value = 150
-
-[[upgrades]]
+[upgrades."Reformer"]
 name = "Reformer"
+
+[[upgrades."Reformer".production_channels]]
 power = 1
 rate = 150
 inputs = [
@@ -29,8 +31,10 @@ build_costs = [
     { material = "ConstructionMaterials", cost = 200 }
 ]
 
-[[upgrades]]
+[upgrades."Cracking Unit"]
 name = "Cracking Unit"
+
+[[upgrades."Cracking Unit".production_channels]]
 power = 1.5
 rate = 160
 inputs = [
@@ -43,8 +47,10 @@ build_costs = [
     { material = "ProcessedConstructionMaterials", cost = 20 }
 ]
 
-[[upgrades]]
+[upgrades."Petrochemical Plant"]
 name = "Petrochemical Plant"
+
+[[upgrades."Petrochemical Plant".production_channels]]
 power = 2
 rate = 160
 inputs = [

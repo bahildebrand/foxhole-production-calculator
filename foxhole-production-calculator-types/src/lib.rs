@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
 use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
@@ -64,7 +64,7 @@ impl Output {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ProductionChannel {
-    pub name: String,
+    /// Power required to run the structure in MW.
     pub power: f32,
     /// Rate of production in seconds.
     pub rate: u64,
@@ -77,7 +77,6 @@ pub struct ProductionChannel {
 impl fmt::Debug for ProductionChannel {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ProductionChannel")
-            .field("name", &format_args!("String::from({:?})", &self.name))
             .field("power", &self.power)
             .field("rate", &self.rate)
             .field(
@@ -91,44 +90,44 @@ impl fmt::Debug for ProductionChannel {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct Structure {
+pub struct Upgrade {
     /// Name of the structure.
     pub name: String,
-    /// Power required to run the structure in MW.
-    pub power: u64,
-    /// Rate of production in seconds.
-    pub rate: u64,
-    pub build_costs: Vec<BuildCost>,
-    pub inputs: Vec<Input>,
-    pub outputs: Vec<Output>,
-    pub upgrades: Vec<ProductionChannel>,
+    pub production_channels: Vec<ProductionChannel>,
+}
+
+impl fmt::Debug for Upgrade {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Upgrade")
+            .field("name", &format_args!("String::from({:?})", &self.name))
+            .field(
+                "production_channels",
+                &format_args!("{:?}.to_vec()", &self.production_channels),
+            )
+            .finish()
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Structure {
+    pub default_upgrade: Upgrade,
+    pub upgrades: HashMap<String, Upgrade>,
 }
 
 impl Structure {
     const SECONDS_PER_HOUR: f32 = 60.0 * 60.0;
 
-    pub fn new(
-        name: String,
-        power: u64,
-        rate: u64,
-        build_costs: Vec<BuildCost>,
-        inputs: Vec<Input>,
-        outputs: Vec<Output>,
-        upgrades: Vec<ProductionChannel>,
-    ) -> Self {
+    pub fn new(default_upgrade: Upgrade, upgrades: HashMap<String, Upgrade>) -> Self {
         Self {
-            name,
-            power,
-            rate,
-            build_costs,
-            inputs,
-            outputs,
+            default_upgrade,
             upgrades,
         }
     }
 
     pub fn hourly_rate(&self, rate: u64) -> f32 {
-        let ticks_per_hour = Self::SECONDS_PER_HOUR / self.rate as f32;
+        // FIXME: The production_channel needs to be chosen dynamically
+        let ticks_per_hour =
+            Self::SECONDS_PER_HOUR / self.default_upgrade.production_channels[0].rate as f32;
 
         ticks_per_hour * rate as f32
     }
@@ -138,15 +137,7 @@ impl Structure {
 impl fmt::Debug for Structure {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Structure")
-            .field("name", &format_args!("String::from({:?})", &self.name))
-            .field("power", &self.power)
-            .field("rate", &self.rate)
-            .field(
-                "build_costs",
-                &format_args!("{:?}.to_vec()", &self.build_costs),
-            )
-            .field("inputs", &format_args!("{:#?}.to_vec()", &self.inputs))
-            .field("outputs", &format_args!("{:#?}.to_vec()", &self.outputs))
+            .field("default_upgrade", &self.default_upgrade)
             .field("upgrades", &format_args!("{:#?}.to_vec()", self.upgrades))
             .finish()
     }

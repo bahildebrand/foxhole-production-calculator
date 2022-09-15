@@ -1,25 +1,25 @@
+[default_upgrade]
 name = "MetalWorks Factory"
+
+[[default_upgrade.production_channels]]
 power = 5
 rate = 60
+build_costs = [
+    { material = "ConstructionMaterials", cost = 125 }
+]
+inputs = [
+    { material = "ConstructionMaterials", value = 3 },
+    { material = "Components", value = 20 }
+]
+outputs = [
+    { material = "ProcessedConstructionMaterials", value = 1 }
+]
 
-[[build_costs]]
-material = "ConstructionMaterials"
-cost = 125
 
-[[inputs]]
-material = "ConstructionMaterials"
-value = 3
-
-[[inputs]]
-material = "Components"
-value = 20
-
-[[outputs]]
-material = "ProcessedConstructionMaterials"
-value = 1
-
-[[upgrades]]
+[upgrades."Oil Reformer"]
 name = "Oil Reformer"
+
+[[upgrades."Oil Reformer".production_channels]]
 power = 1
 rate = 150
 inputs = [

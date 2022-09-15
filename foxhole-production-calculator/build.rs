@@ -43,13 +43,14 @@ fn main() {
         writeln!(
             &mut structure_map_str,
             "\t\t(\"{}\".to_string(), &*{}),",
-            structure.name.clone(),
+            structure.default_upgrade.name.clone(),
             struct_name
         )
         .expect("Failed to write to code generation string");
 
         // Add output mapping entry
-        for output in structure.outputs {
+        // FIXME: Actually choose production channel
+        for output in &structure.default_upgrade.production_channels[0].outputs {
             writeln!(
                 &mut output_map_str,
                 "\t\t({:?}, &*{}),",
