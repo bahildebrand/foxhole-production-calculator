@@ -14,18 +14,33 @@ value = 20
 material = "ConstructionMaterials"
 value = 1
 
-# Upgrades here need to have multiple routes
+# FIXME: Upgrades here need to have multiple routes
 [[upgrades]]
-name = "Oil Reformer"
-power = 1
-rate = 150
+name = "Metal Press"
+power = 4
+rate = 25
 inputs = [
-    { material = "Oil", value = 120 },
-    { material = "Water", value = 30 }
+    { material = "Salvage", value = 20 },
+    { material = "Petrol", value = 25 }
 ]
 outputs = [
-    { material = "Petrol", value = 150 }
+    { material = "ConstructionMaterials", value = 3 }
 ]
 build_costs = [
-    { material = "ConstructionMaterials", cost = 200 }
+    { material = "ConstructionMaterials", cost = 25 }
+]
+
+[[upgrades]]
+name = "Smelter"
+power = 4
+rate = 25
+inputs = [
+    { material = "Salvage", value = 20 },
+    { material = "Coke", value = 25 }
+]
+outputs = [
+    { material = "ConstructionMaterials", value = 3 }
+]
+build_costs = [
+    { material = "ConstructionMaterials", cost = 25 }
 ]
