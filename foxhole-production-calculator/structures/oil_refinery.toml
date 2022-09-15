@@ -46,7 +46,7 @@ build_costs = [
 [[upgrades]]
 name = "Petrochemical Plant"
 power = 2
-rate = 150
+rate = 160
 inputs = [
     { material = "Sulfur", value = 20 },
     { material = "HeavyOil", value = 90 }
