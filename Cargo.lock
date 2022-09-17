@@ -69,6 +69,7 @@ name = "foxhole-production-calculator"
 version = "0.1.1"
 dependencies = [
  "foxhole-production-calculator-types",
+ "genco",
  "lazy_static",
  "toml",
 ]
@@ -87,7 +88,30 @@ name = "foxhole-production-calculator-types"
 version = "0.1.1"
 dependencies = [
  "clap",
+ "genco",
  "serde",
+]
+
+[[package]]
+name = "genco"
+version = "0.17.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8598ff0782dbc5231cf9eb727c1c5e398515b7b62ee68761c2c73950a1de1f4"
+dependencies = [
+ "genco-macros",
+ "relative-path",
+ "smallvec",
+]
+
+[[package]]
+name = "genco-macros"
+version = "0.17.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "40803f2757f84c877f088e62420931f6e05a72514f1f03630384aa30b91d667b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -188,6 +212,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "relative-path"
+version = "1.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0df32d82cedd1499386877b062ebe8721f806de80b08d183c70184ef17dd1d42"
+
+[[package]]
 name = "serde"
 version = "1.0.144"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -206,6 +236,12 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "smallvec"
+version = "1.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2fd0db749597d91ff862fd1d55ea87f7855a744a8425a64695b6fca237d1dad1"
 
 [[package]]
 name = "strsim"

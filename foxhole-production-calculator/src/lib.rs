@@ -1,7 +1,9 @@
 use std::collections::{HashMap, VecDeque};
 
 use foxhole_production_calculator_types::Material::{self, *};
-use foxhole_production_calculator_types::{BuildCost, Input, Output, ProductionChannel, Structure};
+use foxhole_production_calculator_types::{
+    BuildCost, Input, Output, ProductionChannel, Structure, Upgrade,
+};
 
 include!(concat!(env!("OUT_DIR"), "/structures.rs"));
 

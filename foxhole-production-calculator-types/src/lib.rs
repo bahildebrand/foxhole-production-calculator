@@ -1,6 +1,14 @@
 use std::{collections::HashMap, fmt};
 
 use clap::ValueEnum;
+use genco::{
+    lang,
+    prelude::Lang,
+    prelude::*,
+    quote, quote_in,
+    tokens::{self, display, static_literal, FormatInto, ItemStr},
+    Tokens,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(
@@ -26,6 +34,22 @@ pub enum Material {
     ConcreteMaterials,
 }
 
+impl<L> FormatInto<L> for Material
+where
+    L: Lang,
+{
+    fn format_into(self, tokens: &mut Tokens<L>) {
+        let out_str = format!("{:?}", self);
+
+        let literal = ItemStr::Box(out_str.into());
+        tokens.append(literal);
+
+        // quote_in! { *tokens =>
+
+        // }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BuildCost {
     pub material: Material,
@@ -35,6 +59,22 @@ pub struct BuildCost {
 impl BuildCost {
     pub fn new(material: Material, cost: u64) -> Self {
         Self { material, cost }
+    }
+}
+
+impl<L> FormatInto<L> for BuildCost
+where
+    L: Lang,
+{
+    fn format_into(self, tokens: &mut Tokens<L>) {
+        let Self { material, cost } = self;
+
+        quote_in! { *tokens =>
+            BuildCost {
+                material: $material,
+                cost: $cost
+            }
+        }
     }
 }
 
@@ -50,6 +90,22 @@ impl Input {
     }
 }
 
+impl<L> FormatInto<L> for Input
+where
+    L: Lang,
+{
+    fn format_into(self, tokens: &mut Tokens<L>) {
+        let Self { material, value } = self;
+
+        quote_in! { *tokens =>
+            Input {
+                material: $material,
+                value: $value,
+            }
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Output {
     pub material: Material,
@@ -59,6 +115,22 @@ pub struct Output {
 impl Output {
     pub fn new(material: Material, value: u64) -> Self {
         Self { material, value }
+    }
+}
+
+impl<L> FormatInto<L> for Output
+where
+    L: Lang,
+{
+    fn format_into(self, tokens: &mut Tokens<L>) {
+        let Self { material, value } = self;
+
+        quote_in! { *tokens =>
+            Output {
+                material: $material,
+                value: $value,
+            }
+        }
     }
 }
 
@@ -89,11 +161,54 @@ impl fmt::Debug for ProductionChannel {
     }
 }
 
+impl<L> FormatInto<L> for ProductionChannel
+where
+    L: Lang,
+{
+    fn format_into(self, tokens: &mut Tokens<L>) {
+        let Self {
+            power,
+            rate,
+            build_costs,
+            inputs,
+            outputs,
+        } = self;
+        let power_str = format!("{:.2}", power);
+
+        quote_in! { *tokens =>
+            ProductionChannel {
+                power: $power_str,
+                rate: $rate,
+                build_costs: vec![$(for cost in build_costs => $cost,$[' '])],
+                inputs: vec![$(for input in inputs => $input,$[' '])],
+                outputs: vec![$(for output in outputs => $output,$[' '])],
+            }
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Upgrade {
     /// Name of the structure.
     pub name: String,
     pub production_channels: Vec<ProductionChannel>,
+}
+
+impl<L> FormatInto<L> for Upgrade
+where
+    L: Lang,
+{
+    fn format_into(self, tokens: &mut Tokens<L>) {
+        let name = self.name;
+        let production_channels = self.production_channels;
+
+        quote_in! { *tokens =>
+            Upgrade {
+                name: $(quoted(name)).to_string(),
+                production_channels: vec![$(for channel in production_channels => $channel,$[' '])]
+            }
+        }
+    }
 }
 
 impl fmt::Debug for Upgrade {
@@ -140,5 +255,31 @@ impl fmt::Debug for Structure {
             .field("default_upgrade", &self.default_upgrade)
             .field("upgrades", &format_args!("{:#?}.to_vec()", self.upgrades))
             .finish()
+    }
+}
+
+impl<L> FormatInto<L> for Structure
+where
+    L: Lang,
+{
+    fn format_into(self, tokens: &mut Tokens<L>) {
+        let default_upgrade = self.default_upgrade;
+        // let upgrades: Vec<(String, Upgrade)> = self.upgrades.into_iter().collect();
+
+        let mut upgrade_tokens = Tokens::new();
+        upgrade_tokens.append(static_literal("vec!["));
+        for (name, upgrade) in self.upgrades.into_iter() {
+            quote_in! { upgrade_tokens =>
+                ($(quoted(name)).to_string(), $upgrade),
+            };
+        }
+        upgrade_tokens.append(static_literal("].into_iter().collect()"));
+
+        quote_in! { *tokens =>
+            Structure {
+                default_upgrade: $default_upgrade,
+                upgrades: $upgrade_tokens
+            }
+        }
     }
 }

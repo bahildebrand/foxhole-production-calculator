@@ -11,4 +11,5 @@ readme = "README.md"
 
 [dependencies]
 clap = { version = "3.2", features = ["derive"] }
+genco = "0.17"
 serde = { version = "1.0", features = ["derive"] }

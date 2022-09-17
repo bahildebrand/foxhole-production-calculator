@@ -16,3 +16,4 @@ foxhole-production-calculator-types = { path = "../foxhole-production-calculator
 [build-dependencies]
 toml = "0.5"
 foxhole-production-calculator-types = { path = "../foxhole-production-calculator-types", version = "0.1" }
+genco = "0.17"
