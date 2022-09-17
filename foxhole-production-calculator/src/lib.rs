@@ -10,7 +10,7 @@ include!(concat!(env!("OUT_DIR"), "/structures.rs"));
 #[derive(Debug, PartialEq)]
 pub struct FactoryRequirements {
     pub buildings: HashMap<String, f32>,
-    pub power: u64,
+    pub power: f32,
     pub build_cost: HashMap<Material, u64>,
 }
 
@@ -49,7 +49,7 @@ impl<'a> ResourceGraph<'a> {
         rate: u64,
     ) -> FactoryRequirements {
         let mut buildings = HashMap::new();
-        let mut power = 0;
+        let mut power = 0.0;
         let mut build_costs = HashMap::new();
 
         let mut queue = VecDeque::new();
@@ -58,20 +58,24 @@ impl<'a> ResourceGraph<'a> {
             let structure = self.output_map.get(&current_input);
 
             if let Some(structure) = structure {
-                // FIXME: This sucks, change outputs to be a map
                 let mut building_count = 0.0f32;
-                for output in &structure.outputs {
+                // FIXME: This sucks, change outputs to be a map
+                // FIXME: Actually look through production channels
+                for output in &structure.default_upgrade.production_channels[0].outputs {
                     if current_input == output.material {
                         building_count = current_rate as f32 / structure.hourly_rate(output.value);
 
-                        let entry: &mut f32 = buildings.entry(structure.name.clone()).or_default();
+                        let entry: &mut f32 = buildings
+                            .entry(structure.default_upgrade.name.clone())
+                            .or_default();
                         *entry += building_count;
 
                         break;
                     }
                 }
 
-                for input in &structure.inputs {
+                // FIXME: Actually look through production channels
+                for input in &structure.default_upgrade.production_channels[0].inputs {
                     queue.push_back((
                         input.material,
                         structure.hourly_rate(input.value) * building_count,
@@ -86,8 +90,10 @@ impl<'a> ResourceGraph<'a> {
                 .get(building)
                 .expect("Structure should exist");
 
-            power += structure.power * count.ceil() as u64;
-            for build_cost in &structure.build_costs {
+            // FIXME: Actually look through production channels
+            let production_channel = &structure.default_upgrade.production_channels[0];
+            power += production_channel.power * count.ceil();
+            for build_cost in &production_channel.build_costs {
                 let entry = build_costs.entry(build_cost.material).or_default();
 
                 *entry += build_cost.cost * count.ceil() as u64;
