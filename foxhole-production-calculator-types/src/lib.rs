@@ -1,12 +1,10 @@
-use std::{collections::HashMap, fmt};
+use std::collections::HashMap;
 
 use clap::ValueEnum;
 use genco::{
-    lang,
-    prelude::Lang,
     prelude::*,
-    quote, quote_in,
-    tokens::{self, display, static_literal, FormatInto, ItemStr},
+    quote_in,
+    tokens::{static_literal, FormatInto, ItemStr},
     Tokens,
 };
 use serde::{Deserialize, Serialize};
@@ -145,22 +143,6 @@ pub struct ProductionChannel {
     pub outputs: Vec<Output>,
 }
 
-// FIXME: This is a brain dead way to generate code. God help me.
-impl fmt::Debug for ProductionChannel {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ProductionChannel")
-            .field("power", &self.power)
-            .field("rate", &self.rate)
-            .field(
-                "build_costs",
-                &format_args!("{:?}.to_vec()", &self.build_costs),
-            )
-            .field("inputs", &format_args!("{:#?}.to_vec()", &self.inputs))
-            .field("outputs", &format_args!("{:#?}.to_vec()", &self.outputs))
-            .finish()
-    }
-}
-
 impl<L> FormatInto<L> for ProductionChannel
 where
     L: Lang,
@@ -211,18 +193,6 @@ where
     }
 }
 
-impl fmt::Debug for Upgrade {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Upgrade")
-            .field("name", &format_args!("String::from({:?})", &self.name))
-            .field(
-                "production_channels",
-                &format_args!("{:?}.to_vec()", &self.production_channels),
-            )
-            .finish()
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Structure {
     pub default_upgrade: Upgrade,
@@ -245,16 +215,6 @@ impl Structure {
             Self::SECONDS_PER_HOUR / self.default_upgrade.production_channels[0].rate as f32;
 
         ticks_per_hour * rate as f32
-    }
-}
-
-// This is also brain dead. God help me here too.
-impl fmt::Debug for Structure {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Structure")
-            .field("default_upgrade", &self.default_upgrade)
-            .field("upgrades", &format_args!("{:#?}.to_vec()", self.upgrades))
-            .finish()
     }
 }
 
