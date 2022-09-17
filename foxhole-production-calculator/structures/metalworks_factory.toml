@@ -15,20 +15,122 @@ outputs = [
     { material = "ProcessedConstructionMaterials", value = 1 }
 ]
 
+[[default_upgrade.production_channels]]
+power = 5
+rate = 120
+inputs = [
+    { material = "ProcessedConstructionMaterials", value = 3 },
+]
+outputs = [
+    { material = "Pipe", value = 1 }
+]
 
-[upgrades."Oil Reformer"]
-name = "Oil Reformer"
+[upgrades."Blast Furnace"]
+name = "Blast Furnace"
 build_costs = [
     { material = "ConstructionMaterials", cost = 200 }
 ]
 
-[[upgrades."Oil Reformer".production_channels]]
-power = 1
-rate = 150
+[[upgrades."Blast Furnace".production_channels]]
+power = 5
+rate = 120
 inputs = [
-    { material = "Oil", value = 120 },
-    { material = "Water", value = 30 }
+    { material = "ProcessedConstructionMaterials", value = 1 },
+    { material = "HeavyOil", value = 66 }
 ]
 outputs = [
-    { material = "Petrol", value = 150 }
+    { material = "AssemblyMaterialsIV", value = 1 }
+]
+
+[[upgrades."Blast Furnace".production_channels]]
+power = 5
+rate = 120
+inputs = [
+    { material = "ConstructionMaterials", value = 3 },
+    { material = "Sulfur", value = 20 }
+]
+outputs = [
+    { material = "AssemblyMaterialsIII", value = 1 }
+]
+
+[[upgrades."Blast Furnace".production_channels]]
+power = 8
+rate = 60
+inputs = [
+    { material = "ConstructionMaterials", value = 3 },
+    { material = "Components", value = 55 },
+    { material = "HeavyOil", value = 6 }
+]
+outputs = [
+    { material = "ProcessedConstructionMaterials", value = 3 }
+]
+
+[upgrades."Recycler"]
+name = "Recycler"
+build_costs = [
+    { material = "ConstructionMaterials", cost = 25 }
+]
+
+[[upgrades."Recycler".production_channels]]
+power = 5
+rate = 60
+inputs = [
+    { material = "ConstructionMaterials", value = 3 },
+    { material = "Components", value = 20 },
+]
+outputs = [
+    { material = "ProcessedConstructionMaterials", value = 1 },
+    { material = "MetalBeam", value = 1 }
+]
+
+[[upgrades."Recycler".production_channels]]
+power = 4
+rate = 60
+inputs = [
+    { material = "Salvage", value = 200 },
+]
+outputs = [
+    { material = "Components", value = 1 },
+]
+
+[upgrades."Engineering Station"]
+name = "Engineering Station"
+build_costs = [
+    { material = "SteelConstructionMaterials", cost = 25 }
+]
+
+[[upgrades."Engineering Station".production_channels]]
+power = 9
+rate = 160
+inputs = [
+    { material = "ProcessedConstructionMaterials", value = 3 },
+    { material = "Components", value = 20 },
+    { material = "EnrichedOil", value = 6 },
+]
+outputs = [
+    { material = "SteelConstructionMaterials", value = 1 },
+]
+
+[[upgrades."Engineering Station".production_channels]]
+power = 8
+rate = 160
+inputs = [
+    { material = "ProcessedConstructionMaterials", value = 3 },
+    { material = "Components", value = 20 },
+    { material = "EnrichedOil", value = 3 },
+    { material = "Sulfur", value = 20 },
+]
+outputs = [
+    { material = "SteelConstructionMaterials", value = 3 },
+]
+
+[[upgrades."Engineering Station".production_channels]]
+power = 8
+rate = 160
+inputs = [
+    { material = "SteelConstructionMaterials", value = 1 },
+    { material = "EnrichedOil", value = 6 },
+]
+outputs = [
+    { material = "AssemblyMaterialsV", value = 1 },
 ]

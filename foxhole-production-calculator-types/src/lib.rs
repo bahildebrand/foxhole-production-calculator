@@ -30,6 +30,13 @@ pub enum Material {
     Sulfur,
     SteelConstructionMaterials,
     ConcreteMaterials,
+    Pipe,
+    AssemblyMaterialsI,
+    AssemblyMaterialsII,
+    AssemblyMaterialsIII,
+    AssemblyMaterialsIV,
+    AssemblyMaterialsV,
+    MetalBeam,
 }
 
 impl<L> FormatInto<L> for Material
