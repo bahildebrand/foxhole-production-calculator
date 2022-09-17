@@ -1,12 +1,12 @@
 [default_upgrade]
 name = "Coal Refinery"
+build_costs = [
+    { material = "ConstructionMaterials", cost = 50 }
+]
 
 [[default_upgrade.production_channels]]
 power = 3
 rate = 120
-build_costs = [
-    { material = "ConstructionMaterials", cost = 50 }
-]
 inputs = [
     { material = "Coal", value = 200 }
 ]
@@ -16,6 +16,9 @@ outputs = [
 
 [upgrades."Coke Furnace"]
 name = "Coke Furnace"
+build_costs = [
+    { material = "ConstructionMaterials", cost = 200 }
+]
 
 [[upgrades."Coke Furnace".production_channels]]
 power = 3
@@ -27,12 +30,12 @@ outputs = [
     { material = "Coke", value = 165 },
     { material = "Sulfur", value = 15 }
 ]
-build_costs = [
-    { material = "ConstructionMaterials", cost = 200 }
-]
 
 [upgrades."Coal Liquefier"]
 name = "Coal Liquefier"
+build_costs = [
+    { material = "ProcessedConstructionMaterials", cost = 200 }
+]
 
 [[upgrades."Coal Liquefier".production_channels]]
 power = 4
@@ -45,12 +48,12 @@ outputs = [
     { material = "ConcreteMaterials", value = 1 },
     { material = "Oil", value = 50 }
 ]
-build_costs = [
-    { material = "ProcessedConstructionMaterials", cost = 200 }
-]
 
 [upgrades."Advanced Coal Liquefier"]
 name = "Advanced Coal Liquefier"
+build_costs = [
+    { material = "SteelConstructionMaterials", cost = 200 }
+]
 
 [[upgrades."Advanced Coal Liquefier".production_channels]]
 power = 4
@@ -62,7 +65,4 @@ inputs = [
 outputs = [
     { material = "Coke", value = 260 },
     { material = "HeavyOil", value = 60 }
-]
-build_costs = [
-    { material = "SteelConstructionMaterials", cost = 200 }
 ]

@@ -1,12 +1,12 @@
 [default_upgrade]
 name = "Materials Factory"
+build_costs = [
+    { material = "BasicMaterials", cost = 200 }
+]
 
 [[default_upgrade.production_channels]]
 power = 2
 rate = 25
-build_costs = [
-    { material = "BasicMaterials", cost = 200 }
-]
 inputs = [
     { material = "Salvage", value = 20 }
 ]
@@ -17,6 +17,9 @@ outputs = [
 # FIXME: Upgrades here need to have multiple routes
 [upgrades."Metal Press"]
 name = "Metal Press"
+build_costs = [
+    { material = "ConstructionMaterials", cost = 25 }
+]
 
 [[upgrades."Metal Press".production_channels]]
 power = 4
@@ -28,12 +31,12 @@ inputs = [
 outputs = [
     { material = "ConstructionMaterials", value = 3 }
 ]
-build_costs = [
-    { material = "ConstructionMaterials", cost = 25 }
-]
 
 [upgrades.Smelter]
 name = "Smelter"
+build_costs = [
+    { material = "ConstructionMaterials", cost = 25 }
+]
 
 [[upgrades.Smelter.production_channels]]
 power = 4
@@ -44,7 +47,4 @@ inputs = [
 ]
 outputs = [
     { material = "ConstructionMaterials", value = 3 }
-]
-build_costs = [
-    { material = "ConstructionMaterials", cost = 25 }
 ]

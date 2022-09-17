@@ -138,7 +138,6 @@ pub struct ProductionChannel {
     pub power: f32,
     /// Rate of production in seconds.
     pub rate: u64,
-    pub build_costs: Vec<BuildCost>,
     pub inputs: Vec<Input>,
     pub outputs: Vec<Output>,
 }
@@ -151,7 +150,6 @@ where
         let Self {
             power,
             rate,
-            build_costs,
             inputs,
             outputs,
         } = self;
@@ -161,7 +159,6 @@ where
             ProductionChannel {
                 power: $power_str,
                 rate: $rate,
-                build_costs: vec![$(for cost in build_costs => $cost,$[' '])],
                 inputs: vec![$(for input in inputs => $input,$[' '])],
                 outputs: vec![$(for output in outputs => $output,$[' '])],
             }
@@ -173,6 +170,7 @@ where
 pub struct Upgrade {
     /// Name of the structure.
     pub name: String,
+    pub build_costs: Vec<BuildCost>,
     pub production_channels: Vec<ProductionChannel>,
 }
 
@@ -181,12 +179,16 @@ where
     L: Lang,
 {
     fn format_into(self, tokens: &mut Tokens<L>) {
-        let name = self.name;
-        let production_channels = self.production_channels;
+        let Self {
+            name,
+            build_costs,
+            production_channels,
+        } = self;
 
         quote_in! { *tokens =>
             Upgrade {
                 name: $(quoted(name)).to_string(),
+                build_costs: vec![$(for cost in build_costs => $cost,$[' '])],
                 production_channels: vec![$(for channel in production_channels => $channel,$[' '])]
             }
         }

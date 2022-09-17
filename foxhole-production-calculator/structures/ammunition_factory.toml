@@ -1,12 +1,12 @@
 [default_upgrade]
 name = "Ammunition Factory"
+build_costs = [
+    { material = "ConstructionMaterials", cost = 25 }
+]
 
 [[default_upgrade.production_channels]]
 power = 4
 rate = 25
-build_costs = [
-    { material = "ConstructionMaterials", cost = 25 }
-]
 inputs = [
     { material = "ConstructionMaterials", value = 1 },
     { material = "HeavyExplosiveMaterials", value = 1 }
@@ -17,6 +17,9 @@ outputs = [
 
 [upgrades."Oil Reformer"]
 name = "Oil Reformer"
+build_costs = [
+    { material = "ConstructionMaterials", cost = 200 }
+]
 
 [[upgrades."Oil Reformer".production_channels]]
 power = 1
@@ -27,7 +30,4 @@ inputs = [
 ]
 outputs = [
     { material = "Petrol", value = 150 }
-]
-build_costs = [
-    { material = "ConstructionMaterials", cost = 200 }
 ]

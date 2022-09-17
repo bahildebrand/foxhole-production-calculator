@@ -93,7 +93,7 @@ impl<'a> ResourceGraph<'a> {
             // FIXME: Actually look through production channels
             let production_channel = &structure.default_upgrade.production_channels[0];
             power += production_channel.power * count.ceil();
-            for build_cost in &production_channel.build_costs {
+            for build_cost in &structure.default_upgrade.build_costs {
                 let entry = build_costs.entry(build_cost.material).or_default();
 
                 *entry += build_cost.cost * count.ceil() as u64;
