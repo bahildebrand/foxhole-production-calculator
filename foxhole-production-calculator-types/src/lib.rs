@@ -21,8 +21,9 @@ pub enum Material {
     Petrol,
     Coal,
     Coke,
+    ExplosiveMaterials,
     HeavyExplosiveMaterials,
-    Napalm,
+    FlameAmmo,
     Components,
     Water,
     HeavyOil,
@@ -39,6 +40,14 @@ pub enum Material {
     MetalBeam,
     SandBag,
     BarbedWire,
+    Rocket3CHighExplosive,
+    Rocket4CFire,
+    Shell75MM,
+    Shell945MM,
+    Shell120MM,
+    Shell150MM,
+    Shell250MM,
+    Shell300MM,
 }
 
 impl<L> FormatInto<L> for Material

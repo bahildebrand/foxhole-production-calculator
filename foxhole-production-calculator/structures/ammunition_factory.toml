@@ -1,7 +1,7 @@
 [default_upgrade]
 name = "Ammunition Factory"
 build_costs = [
-    { material = "ConstructionMaterials", cost = 25 }
+    { material = "ProcessedConstructionMaterials", cost = 25 }
 ]
 
 [[default_upgrade.production_channels]]
@@ -12,22 +12,105 @@ inputs = [
     { material = "HeavyExplosiveMaterials", value = 1 }
 ]
 outputs = [
-    { material = "Napalm", value = 1 }
+    { material = "FlameAmmo", value = 1 }
 ]
 
-[upgrades."Oil Reformer"]
-name = "Oil Reformer"
-build_costs = [
-    { material = "ConstructionMaterials", cost = 200 }
-]
-
-[[upgrades."Oil Reformer".production_channels]]
-power = 1
-rate = 150
+[[default_upgrade.production_channels]]
+power = 4
+rate = 25
 inputs = [
-    { material = "Oil", value = 120 },
-    { material = "Water", value = 30 }
+    { material = "ConstructionMaterials", value = 5 },
+    { material = "HeavyExplosiveMaterials", value = 6 }
 ]
 outputs = [
-    { material = "Petrol", value = 150 }
+    { material = "Shell250MM", value = 1 }
+]
+
+[upgrades."RocketFactory"]
+name = "RocketFactory"
+build_costs = [
+    { material = "ProcessedConstructionMaterials", cost = 35 }
+]
+
+[[upgrades."RocketFactory".production_channels]]
+power = 4
+rate = 25
+inputs = [
+    { material = "ConstructionMaterials", value = 2 },
+    { material = "HeavyExplosiveMaterials", value = 1 }
+]
+outputs = [
+    { material = "Rocket3CHighExplosive", value = 1 }
+]
+
+[[upgrades."RocketFactory".production_channels]]
+power = 4
+rate = 25
+inputs = [
+    { material = "ConstructionMaterials", value = 2 },
+    { material = "HeavyExplosiveMaterials", value = 1 }
+]
+outputs = [
+    { material = "Rocket4CFire", value = 1 }
+]
+
+[upgrades."LargeShellFactory"]
+name = "LargeShellFactory"
+build_costs = [
+    { material = "ProcessedConstructionMaterials", cost = 175 }
+]
+
+[[upgrades."LargeShellFactory".production_channels]]
+power = 4
+rate = 25
+inputs = [
+    { material = "ConstructionMaterials", value = 2 },
+    { material = "HeavyExplosiveMaterials", value = 2 }
+]
+outputs = [
+    { material = "Shell75MM", value = 1 }
+]
+
+[[upgrades."LargeShellFactory".production_channels]]
+power = 4
+rate = 25
+inputs = [
+    { material = "ConstructionMaterials", value = 2 },
+    { material = "HeavyExplosiveMaterials", value = 2 }
+]
+outputs = [
+    { material = "Shell945MM", value = 1 }
+]
+
+[[upgrades."LargeShellFactory".production_channels]]
+power = 6
+rate = 25
+inputs = [
+    { material = "ConstructionMaterials", value = 4 },
+    { material = "HeavyExplosiveMaterials", value = 6 }
+]
+outputs = [
+    { material = "Shell300MM", value = 1 }
+]
+
+[[upgrades."LargeShellFactory".production_channels]]
+power = 4
+rate = 15
+inputs = [
+    { material = "ConstructionMaterials", value = 2 },
+    { material = "ExplosiveMaterials", value = 3 }
+]
+outputs = [
+    { material = "Shell120MM", value = 1 }
+]
+
+[[upgrades."LargeShellFactory".production_channels]]
+power = 4
+rate = 20
+inputs = [
+    { material = "ConstructionMaterials", value = 3 },
+    { material = "HeavyExplosiveMaterials", value = 2 }
+]
+outputs = [
+    { material = "Shell150MM", value = 1 }
 ]
