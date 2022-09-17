@@ -37,6 +37,8 @@ pub enum Material {
     AssemblyMaterialsIV,
     AssemblyMaterialsV,
     MetalBeam,
+    SandBag,
+    BarbedWire,
 }
 
 impl<L> FormatInto<L> for Material

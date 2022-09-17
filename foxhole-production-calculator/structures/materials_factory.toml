@@ -32,13 +32,13 @@ outputs = [
     { material = "ConstructionMaterials", value = 3 }
 ]
 
-[upgrades.Smelter]
+[upgrades."Smelter"]
 name = "Smelter"
 build_costs = [
     { material = "ConstructionMaterials", cost = 25 }
 ]
 
-[[upgrades.Smelter.production_channels]]
+[[upgrades."Smelter".production_channels]]
 power = 4
 rate = 25
 inputs = [
@@ -47,4 +47,60 @@ inputs = [
 ]
 outputs = [
     { material = "ConstructionMaterials", value = 3 }
+]
+
+[upgrades."Forge"]
+name = "Forge"
+build_costs = [
+    { material = "ConstructionMaterials", cost = 200 }
+]
+
+[[upgrades."Forge".production_channels]]
+power = 2
+rate = 60
+inputs = [
+    { material = "Salvage", value = 20 },
+    { material = "Coke", value = 180 }
+]
+outputs = [
+    { material = "AssemblyMaterialsI", value = 1 }
+]
+
+[[upgrades."Forge".production_channels]]
+power = 2
+rate = 60
+inputs = [
+    { material = "Salvage", value = 20 },
+    { material = "Petrol", value = 150 }
+]
+outputs = [
+    { material = "AssemblyMaterialsI", value = 1 }
+]
+
+[upgrades."Recycler"]
+name = "Recycler"
+build_costs = [
+    { material = "BasicMaterials", cost = 50 }
+]
+
+[[upgrades."Recycler".production_channels]]
+power = 2
+rate = 60
+inputs = [
+    { material = "Salvage", value = 25 },
+]
+outputs = [
+    { material = "ConstructionMaterials", value = 1 },
+    { material = "SandBag", value = 5 }
+]
+
+[[upgrades."Recycler".production_channels]]
+power = 2
+rate = 60
+inputs = [
+    { material = "Salvage", value = 25 },
+]
+outputs = [
+    { material = "ConstructionMaterials", value = 1 },
+    { material = "BarbedWire", value = 5 }
 ]
