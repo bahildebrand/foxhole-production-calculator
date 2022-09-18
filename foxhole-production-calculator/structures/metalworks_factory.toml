@@ -30,6 +30,7 @@ name = "Blast Furnace"
 build_costs = [
     { material = "ConstructionMaterials", cost = 200 }
 ]
+parent = "MetalWorks Factory"
 
 [[upgrades."Blast Furnace".production_channels]]
 power = 5
@@ -70,6 +71,7 @@ name = "Recycler"
 build_costs = [
     { material = "ConstructionMaterials", cost = 25 }
 ]
+parent = "MetalWorks Factory"
 
 [[upgrades."Recycler".production_channels]]
 power = 5
@@ -98,6 +100,7 @@ name = "Engineering Station"
 build_costs = [
     { material = "SteelConstructionMaterials", cost = 25 }
 ]
+parent = "MetalWorks Factory"
 
 [[upgrades."Engineering Station".production_channels]]
 power = 9

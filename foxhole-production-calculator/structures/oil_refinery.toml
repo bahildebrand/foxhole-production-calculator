@@ -19,6 +19,7 @@ name = "Reformer"
 build_costs = [
     { material = "ConstructionMaterials", cost = 200 }
 ]
+parent = "Oil Refinery"
 
 [[upgrades."Reformer".production_channels]]
 power = 1
@@ -36,6 +37,7 @@ name = "Cracking Unit"
 build_costs = [
     { material = "ProcessedConstructionMaterials", cost = 20 }
 ]
+parent = "Oil Refinery"
 
 [[upgrades."Cracking Unit".production_channels]]
 power = 1.5
@@ -52,6 +54,7 @@ name = "Petrochemical Plant"
 build_costs = [
     { material = "SteelConstructionMaterials", cost = 25 }
 ]
+parent = "Oil Refinery"
 
 [[upgrades."Petrochemical Plant".production_channels]]
 power = 2

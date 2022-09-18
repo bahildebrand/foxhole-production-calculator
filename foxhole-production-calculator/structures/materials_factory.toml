@@ -20,6 +20,7 @@ name = "Metal Press"
 build_costs = [
     { material = "ConstructionMaterials", cost = 25 }
 ]
+parent = "Materials Factory"
 
 [[upgrades."Metal Press".production_channels]]
 power = 4
@@ -37,6 +38,7 @@ name = "Smelter"
 build_costs = [
     { material = "ConstructionMaterials", cost = 25 }
 ]
+parent = "Materials Factory"
 
 [[upgrades."Smelter".production_channels]]
 power = 4
@@ -54,6 +56,7 @@ name = "Forge"
 build_costs = [
     { material = "ConstructionMaterials", cost = 200 }
 ]
+parent = "Materials Factory"
 
 [[upgrades."Forge".production_channels]]
 power = 2
@@ -82,6 +85,7 @@ name = "Recycler"
 build_costs = [
     { material = "BasicMaterials", cost = 50 }
 ]
+parent = "Materials Factory"
 
 [[upgrades."Recycler".production_channels]]
 power = 2

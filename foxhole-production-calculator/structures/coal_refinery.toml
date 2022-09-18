@@ -19,6 +19,7 @@ name = "Coke Furnace"
 build_costs = [
     { material = "ConstructionMaterials", cost = 200 }
 ]
+parent = "Coal Refinery"
 
 [[upgrades."Coke Furnace".production_channels]]
 power = 3
@@ -36,6 +37,7 @@ name = "Coal Liquefier"
 build_costs = [
     { material = "ProcessedConstructionMaterials", cost = 200 }
 ]
+parent = "Coal Refinery"
 
 [[upgrades."Coal Liquefier".production_channels]]
 power = 4
@@ -54,6 +56,7 @@ name = "Advanced Coal Liquefier"
 build_costs = [
     { material = "SteelConstructionMaterials", cost = 200 }
 ]
+parent = "Coal Refinery"
 
 [[upgrades."Advanced Coal Liquefier".production_channels]]
 power = 4

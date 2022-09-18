@@ -190,6 +190,7 @@ pub struct Upgrade {
     pub name: String,
     pub build_costs: Vec<BuildCost>,
     pub production_channels: Vec<ProductionChannel>,
+    pub parent: Option<String>,
 }
 
 impl<L> FormatInto<L> for Upgrade
@@ -201,13 +202,15 @@ where
             name,
             build_costs,
             production_channels,
+            parent,
         } = self;
 
         quote_in! { *tokens =>
             Upgrade {
                 name: $(quoted(name)).to_string(),
                 build_costs: vec![$(for cost in build_costs => $cost,$[' '])],
-                production_channels: vec![$(for channel in production_channels => $channel,$[' '])]
+                production_channels: vec![$(for channel in production_channels => $channel,$[' '])],
+                parent: $(if parent.is_some() { Some($(quoted(parent)).to_string()) } else { None })
             }
         }
     }
