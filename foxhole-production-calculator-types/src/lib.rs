@@ -184,6 +184,16 @@ where
     }
 }
 
+impl ProductionChannel {
+    const SECONDS_PER_HOUR: f32 = 60.0 * 60.0;
+
+    pub fn hourly_rate(&self, rate: u64) -> f32 {
+        let ticks_per_hour = Self::SECONDS_PER_HOUR / self.rate as f32;
+
+        ticks_per_hour * rate as f32
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Upgrade {
     /// Name of the structure.
@@ -223,21 +233,11 @@ pub struct Structure {
 }
 
 impl Structure {
-    const SECONDS_PER_HOUR: f32 = 60.0 * 60.0;
-
     pub fn new(default_upgrade: Upgrade, upgrades: HashMap<String, Upgrade>) -> Self {
         Self {
             default_upgrade,
             upgrades,
         }
-    }
-
-    pub fn hourly_rate(&self, rate: u64) -> f32 {
-        // FIXME: The production_channel needs to be chosen dynamically
-        let ticks_per_hour =
-            Self::SECONDS_PER_HOUR / self.default_upgrade.production_channels[0].rate as f32;
-
-        ticks_per_hour * rate as f32
     }
 }
 

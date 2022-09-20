@@ -52,34 +52,39 @@ impl<'a> ResourceGraph<'a> {
         let mut power = 0.0;
         let mut build_costs = HashMap::new();
 
-        let mut queue = VecDeque::new();
-        queue.push_back((output, rate as f32));
-        while let Some((current_input, current_rate)) = queue.pop_front() {
-            let structure = self.upgrade_map.get(&current_input);
+        let mut stack = Vec::new();
+        stack.push((output, rate as f32));
+        while let Some((current_input, current_rate)) = stack.pop() {
+            let upgrades = self.upgrade_map.get(&current_input);
 
-            if let Some(structure) = structure {
+            if let Some(upgrades) = upgrades {
                 let mut building_count = 0.0f32;
-                // FIXME: This sucks, change outputs to be a map
-                // FIXME: Actually look through production channels
-                for output in &structure.default_upgrade.production_channels[0].outputs {
-                    if current_input == output.material {
-                        building_count = current_rate as f32 / structure.hourly_rate(output.value);
+                for upgrade in upgrades {
+                    for production_channel in &upgrade.production_channels {
+                        // FIXME: This sucks, change outputs to be a map
+                        for output in &production_channel.outputs {
+                            if current_input == output.material {
+                                building_count = current_rate as f32
+                                    / production_channel.hourly_rate(output.value);
 
-                        let entry: &mut f32 = buildings
-                            .entry(structure.default_upgrade.name.clone())
-                            .or_default();
-                        *entry += building_count;
+                                let building_name = upgrade
+                                    .parent
+                                    .clone()
+                                    .unwrap_or_else(|| upgrade.name.clone());
+                                let entry: &mut f32 = buildings.entry(building_name).or_default();
+                                *entry += building_count;
 
-                        break;
+                                break;
+                            }
+                        }
+
+                        for input in &production_channel.inputs {
+                            stack.push((
+                                input.material,
+                                production_channel.hourly_rate(input.value) * building_count,
+                            ));
+                        }
                     }
-                }
-
-                // FIXME: Actually look through production channels
-                for input in &structure.default_upgrade.production_channels[0].inputs {
-                    queue.push_back((
-                        input.material,
-                        structure.hourly_rate(input.value) * building_count,
-                    ));
                 }
             }
         }
