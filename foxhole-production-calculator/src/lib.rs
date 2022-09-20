@@ -16,14 +16,14 @@ pub struct FactoryRequirements {
 
 pub struct ResourceGraph<'a> {
     structure_map: &'a HashMap<String, &'a Structure>,
-    output_map: &'a HashMap<Material, &'a Structure>,
+    upgrade_map: &'a HashMap<Material, Vec<Upgrade>>,
 }
 
 impl<'a> Default for ResourceGraph<'a> {
     fn default() -> Self {
         Self {
             structure_map: &*STRUCTURE_MAP,
-            output_map: &*OUTPUT_MAP,
+            upgrade_map: &*OUTPUT_MAP,
         }
     }
 }
@@ -32,11 +32,11 @@ impl<'a> ResourceGraph<'a> {
     #[cfg(test)]
     fn new(
         structure_map: &'a HashMap<String, &'a Structure>,
-        output_map: &'a HashMap<Material, &'a Structure>,
+        upgrade_map: &'a HashMap<Material, Vec<Upgrade>>,
     ) -> Self {
         Self {
             structure_map,
-            output_map,
+            upgrade_map,
         }
     }
 
@@ -55,7 +55,7 @@ impl<'a> ResourceGraph<'a> {
         let mut queue = VecDeque::new();
         queue.push_back((output, rate as f32));
         while let Some((current_input, current_rate)) = queue.pop_front() {
-            let structure = self.output_map.get(&current_input);
+            let structure = self.upgrade_map.get(&current_input);
 
             if let Some(structure) = structure {
                 let mut building_count = 0.0f32;

@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::{collections::HashMap, env};
 
-use foxhole_production_calculator_types::Structure;
+use foxhole_production_calculator_types::{Material, Structure, Upgrade};
 use genco::tokens::static_literal;
 use genco::{fmt, lang, prelude::*};
 
@@ -74,22 +74,38 @@ fn generate_named_structures(
 
 fn generate_output_map(tokens: &mut Tokens<lang::Rust>, structures: &HashMap<String, Structure>) {
     let hashmap = rust::import("std::collections", "HashMap");
-    let structure_import = rust::import("foxhole_production_calculator_types", "Structure");
+    let upgrade_import = rust::import("foxhole_production_calculator_types", "Upgrade");
     quote_in! { *tokens =>
-        static ref OUTPUT_MAP: $hashmap<Material, &'static $structure_import> =$[' ']
+        static ref OUTPUT_MAP: $hashmap<Material, Vec<$upgrade_import>> =$[' ']
     };
+
+    let mut upgrade_map = HashMap::new();
+    for structure in structures.values() {
+        parse_upgrade(&mut upgrade_map, &structure.default_upgrade);
+        for upgrade in structure.upgrades.values() {
+            parse_upgrade(&mut upgrade_map, upgrade);
+        }
+    }
+
     tokens.append(static_literal("vec!["));
     tokens.push();
-    for (name, structure) in structures.clone().into_iter() {
-        // FIXME: Need to account for all production paths
-        let output_mat = structure.default_upgrade.production_channels[0].outputs[0].material;
-
+    for (material, upgrades) in upgrade_map {
         quote_in! { *tokens =>
-            ($output_mat, &*$name),
+            ($material, vec![$(for upgrade in upgrades => $upgrade, $[' '])]),
         }
     }
     tokens.append(static_literal("].into_iter().collect();"));
     tokens.push();
+}
+
+fn parse_upgrade(upgrade_map: &mut HashMap<Material, Vec<Upgrade>>, upgrade: &Upgrade) {
+    for production_channel in &upgrade.production_channels {
+        for output in &production_channel.outputs {
+            let entry = upgrade_map.entry(output.material).or_insert_with(Vec::new);
+
+            entry.push(upgrade.clone());
+        }
+    }
 }
 
 fn generate_structure_map(
