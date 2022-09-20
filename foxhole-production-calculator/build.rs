@@ -39,52 +39,9 @@ fn main() {
     tokens.append(static_literal("{"));
     tokens.push();
 
-    // Build named structures
-    for (name, structure) in structures.clone().into_iter() {
-        let structure_import = rust::import("foxhole_production_calculator_types", "Structure");
-        quote_in! { tokens =>
-            static ref $name: $structure_import = $structure;
-        };
-
-        tokens.push();
-    }
-
-    // Build output map
-    let hashmap = rust::import("std::collections", "HashMap");
-    let structure_import = rust::import("foxhole_production_calculator_types", "Structure");
-    quote_in! { tokens =>
-        static ref OUTPUT_MAP: $hashmap<Material, &'static $structure_import> =$[' ']
-    };
-    tokens.append(static_literal("vec!["));
-    tokens.push();
-    for (name, structure) in structures.clone().into_iter() {
-        // FIXME: Need to account for all production paths
-        let output_mat = structure.default_upgrade.production_channels[0].outputs[0].material;
-
-        quote_in! { tokens =>
-            ($output_mat, &*$name),
-        }
-    }
-    tokens.append(static_literal("].into_iter().collect();"));
-    tokens.push();
-
-    // Build structure map
-    let hashmap = rust::import("std::collections", "HashMap");
-    let structure_import = rust::import("foxhole_production_calculator_types", "Structure");
-    quote_in! { tokens =>
-        static ref STRUCTURE_MAP: $hashmap<String, &'static $structure_import> = $[' ']
-    };
-    tokens.append(static_literal("vec!["));
-    tokens.push();
-    for (name, structure) in structures.clone().into_iter() {
-        let name_str = structure.default_upgrade.name;
-
-        quote_in! { tokens =>
-            ($(quoted(name_str)).to_string(), &*$name),
-        }
-    }
-    tokens.append(static_literal("].into_iter().collect();"));
-    tokens.push();
+    generate_named_structures(&mut tokens, &structures);
+    generate_output_map(&mut tokens, &structures);
+    generate_structure_map(&mut tokens, &structures);
 
     // End lazy static scope
     tokens.append(static_literal("}"));
@@ -99,4 +56,60 @@ fn main() {
     tokens
         .format_file(&mut writer.as_formatter(&fmt), &config)
         .unwrap();
+}
+
+fn generate_named_structures(
+    tokens: &mut Tokens<lang::Rust>,
+    structures: &HashMap<String, Structure>,
+) {
+    for (name, structure) in structures.clone().into_iter() {
+        let structure_import = rust::import("foxhole_production_calculator_types", "Structure");
+        quote_in! { *tokens =>
+            static ref $name: $structure_import = $structure;
+        };
+
+        tokens.push();
+    }
+}
+
+fn generate_output_map(tokens: &mut Tokens<lang::Rust>, structures: &HashMap<String, Structure>) {
+    let hashmap = rust::import("std::collections", "HashMap");
+    let structure_import = rust::import("foxhole_production_calculator_types", "Structure");
+    quote_in! { *tokens =>
+        static ref OUTPUT_MAP: $hashmap<Material, &'static $structure_import> =$[' ']
+    };
+    tokens.append(static_literal("vec!["));
+    tokens.push();
+    for (name, structure) in structures.clone().into_iter() {
+        // FIXME: Need to account for all production paths
+        let output_mat = structure.default_upgrade.production_channels[0].outputs[0].material;
+
+        quote_in! { *tokens =>
+            ($output_mat, &*$name),
+        }
+    }
+    tokens.append(static_literal("].into_iter().collect();"));
+    tokens.push();
+}
+
+fn generate_structure_map(
+    tokens: &mut Tokens<lang::Rust>,
+    structures: &HashMap<String, Structure>,
+) {
+    let hashmap = rust::import("std::collections", "HashMap");
+    let structure_import = rust::import("foxhole_production_calculator_types", "Structure");
+    quote_in! { *tokens =>
+        static ref STRUCTURE_MAP: $hashmap<String, &'static $structure_import> = $[' ']
+    };
+    tokens.append(static_literal("vec!["));
+    tokens.push();
+    for (name, structure) in structures.clone().into_iter() {
+        let name_str = structure.default_upgrade.name;
+
+        quote_in! { *tokens =>
+            ($(quoted(name_str)).to_string(), &*$name),
+        }
+    }
+    tokens.append(static_literal("].into_iter().collect();"));
+    tokens.push();
 }
