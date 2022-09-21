@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 
 use foxhole_production_calculator_types::Material::{self, *};
 use foxhole_production_calculator_types::{
@@ -7,9 +7,16 @@ use foxhole_production_calculator_types::{
 
 include!(concat!(env!("OUT_DIR"), "/structures.rs"));
 
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct StructureKey {
+    parent: Option<String>,
+    upgrade: String,
+    prod_channel_idx: usize,
+}
+
 #[derive(Debug, PartialEq)]
 pub struct FactoryRequirements {
-    pub buildings: HashMap<String, f32>,
+    pub buildings: HashMap<StructureKey, f32>,
     pub power: f32,
     pub build_cost: HashMap<Material, u64>,
 }
@@ -49,9 +56,6 @@ impl<'a> ResourceGraph<'a> {
         rate: u64,
     ) -> FactoryRequirements {
         let mut buildings = HashMap::new();
-        let mut power = 0.0;
-        let mut build_costs = HashMap::new();
-
         let mut stack = Vec::new();
         stack.push((output, rate as f32));
         while let Some((current_input, current_rate)) = stack.pop() {
@@ -60,18 +64,22 @@ impl<'a> ResourceGraph<'a> {
             if let Some(upgrades) = upgrades {
                 let mut building_count = 0.0f32;
                 for upgrade in upgrades {
-                    for production_channel in &upgrade.production_channels {
+                    for (prod_channel_idx, production_channel) in
+                        upgrade.production_channels.iter().enumerate()
+                    {
                         // FIXME: This sucks, change outputs to be a map
                         for output in &production_channel.outputs {
                             if current_input == output.material {
                                 building_count = current_rate as f32
                                     / production_channel.hourly_rate(output.value);
 
-                                let building_name = upgrade
-                                    .parent
-                                    .clone()
-                                    .unwrap_or_else(|| upgrade.name.clone());
-                                let entry: &mut f32 = buildings.entry(building_name).or_default();
+                                let structure_key = StructureKey {
+                                    parent: upgrade.parent.clone(),
+                                    upgrade: upgrade.name.clone(),
+                                    prod_channel_idx,
+                                };
+
+                                let entry: &mut f32 = buildings.entry(structure_key).or_default();
                                 *entry += building_count;
 
                                 break;
@@ -89,19 +97,33 @@ impl<'a> ResourceGraph<'a> {
             }
         }
 
-        for (building, count) in &buildings {
-            let structure = self
-                .structure_map
-                .get(building)
-                .expect("Structure should exist");
+        let mut power = 0.0;
+        let mut build_costs = HashMap::new();
+        for (structure_key, count) in &buildings {
+            if let Some(parent) = &structure_key.parent {
+                // Non-default upgrade case
+                let structure = STRUCTURE_MAP.get(parent).expect("Structure should exist");
+                let upgrade = structure
+                    .upgrades
+                    .get(&structure_key.upgrade)
+                    .expect("Upgrade should exist");
 
-            // FIXME: Actually look through production channels
-            let production_channel = &structure.default_upgrade.production_channels[0];
-            power += production_channel.power * count.ceil();
-            for build_cost in &structure.default_upgrade.build_costs {
-                let entry = build_costs.entry(build_cost.material).or_default();
+                calculate_build_costs(&mut build_costs, &structure.default_upgrade, *count);
+                calculate_build_costs(&mut build_costs, upgrade, *count);
 
-                *entry += build_cost.cost * count.ceil() as u64;
+                power += upgrade.production_channels[structure_key.prod_channel_idx].power
+                    * count.ceil();
+            } else {
+                // Default upgrade case
+                let structure = STRUCTURE_MAP
+                    .get(&structure_key.upgrade)
+                    .expect("Structure should exist");
+
+                calculate_build_costs(&mut build_costs, &structure.default_upgrade, *count);
+
+                let production_channel =
+                    &structure.default_upgrade.production_channels[structure_key.prod_channel_idx];
+                power += production_channel.power * count.ceil();
             }
         }
 
@@ -110,6 +132,18 @@ impl<'a> ResourceGraph<'a> {
             power,
             build_cost: build_costs,
         }
+    }
+}
+
+fn calculate_build_costs(
+    build_costs: &mut HashMap<Material, u64>,
+    upgrade: &Upgrade,
+    upgrade_count: f32,
+) {
+    for build_cost in &upgrade.build_costs {
+        let entry = build_costs.entry(build_cost.material).or_default();
+
+        *entry += build_cost.cost * upgrade_count.ceil() as u64;
     }
 }
 
