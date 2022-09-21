@@ -102,7 +102,10 @@ impl<'a> ResourceGraph<'a> {
         for (structure_key, count) in &buildings {
             if let Some(parent) = &structure_key.parent {
                 // Non-default upgrade case
-                let structure = STRUCTURE_MAP.get(parent).expect("Structure should exist");
+                let structure = self
+                    .structure_map
+                    .get(parent)
+                    .expect("Structure should exist");
                 let upgrade = structure
                     .upgrades
                     .get(&structure_key.upgrade)
@@ -115,7 +118,8 @@ impl<'a> ResourceGraph<'a> {
                     * count.ceil();
             } else {
                 // Default upgrade case
-                let structure = STRUCTURE_MAP
+                let structure = self
+                    .structure_map
                     .get(&structure_key.upgrade)
                     .expect("Structure should exist");
 
