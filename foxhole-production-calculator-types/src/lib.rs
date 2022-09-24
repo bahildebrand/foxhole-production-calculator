@@ -146,7 +146,7 @@ where
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProductionChannel {
     /// Power required to run the structure in MW.
     pub power: f32,
@@ -190,7 +190,7 @@ impl ProductionChannel {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Upgrade {
     /// Name of the structure.
     pub name: String,
@@ -238,7 +238,7 @@ where
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Structure {
     pub default_upgrade: Upgrade,
     pub upgrades: HashMap<String, Upgrade>,
