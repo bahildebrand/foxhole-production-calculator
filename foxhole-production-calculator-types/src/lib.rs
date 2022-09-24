@@ -199,6 +199,22 @@ pub struct Upgrade {
     pub parent: Option<String>,
 }
 
+impl Upgrade {
+    pub fn new(
+        name: String,
+        build_costs: Vec<BuildCost>,
+        production_channels: Vec<ProductionChannel>,
+        parent: Option<String>,
+    ) -> Self {
+        Self {
+            name,
+            build_costs,
+            production_channels,
+            parent,
+        }
+    }
+}
+
 impl<L> FormatInto<L> for Upgrade
 where
     L: Lang,
