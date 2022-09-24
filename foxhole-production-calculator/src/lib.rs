@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 
 use foxhole_production_calculator_types::Material::{self, *};
 use foxhole_production_calculator_types::{
@@ -7,11 +8,30 @@ use foxhole_production_calculator_types::{
 
 include!(concat!(env!("OUT_DIR"), "/structures.rs"));
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone)]
 pub struct StructureKey {
     parent: Option<String>,
     upgrade: String,
     prod_channel_idx: usize,
+    output: Output,
+}
+
+impl PartialEq for StructureKey {
+    fn eq(&self, other: &Self) -> bool {
+        self.parent == other.parent
+            && self.upgrade == other.upgrade
+            && self.prod_channel_idx == other.prod_channel_idx
+    }
+}
+
+impl Eq for StructureKey {}
+
+impl Hash for StructureKey {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.parent.hash(state);
+        self.upgrade.hash(state);
+        self.prod_channel_idx.hash(state);
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -57,12 +77,13 @@ impl<'a> ResourceGraph<'a> {
     ) -> FactoryRequirements {
         let mut buildings = HashMap::new();
         let mut stack = Vec::new();
+        let mut power = 0.0;
+        let mut build_costs = HashMap::new();
+
         stack.push((output, rate as f32));
         while let Some((current_input, current_rate)) = stack.pop() {
-            let upgrades = self.upgrade_map.get(&current_input);
-
-            if let Some(upgrades) = upgrades {
-                let mut building_count = 0.0f32;
+            if let Some(upgrades) = self.upgrade_map.get(&current_input) {
+                let mut highest_upgrade = None;
                 for upgrade in upgrades {
                     for (prod_channel_idx, production_channel) in
                         upgrade.production_channels.iter().enumerate()
@@ -70,64 +91,96 @@ impl<'a> ResourceGraph<'a> {
                         // FIXME: This sucks, change outputs to be a map
                         for output in &production_channel.outputs {
                             if current_input == output.material {
-                                building_count = current_rate as f32
-                                    / production_channel.hourly_rate(output.value);
-
                                 let structure_key = StructureKey {
                                     parent: upgrade.parent.clone(),
                                     upgrade: upgrade.name.clone(),
                                     prod_channel_idx,
+                                    output: output.clone(),
                                 };
 
-                                let entry: &mut f32 = buildings.entry(structure_key).or_default();
-                                *entry += building_count;
+                                if let Some((highest_output_val, upgrade)) = &mut highest_upgrade {
+                                    if output.value > *highest_output_val {
+                                        *highest_output_val = output.value;
+                                        *upgrade = structure_key;
+                                    }
+                                } else {
+                                    highest_upgrade = Some((output.value, structure_key));
+                                }
 
                                 break;
                             }
                         }
+                    }
 
-                        for input in &production_channel.inputs {
-                            stack.push((
-                                input.material,
-                                production_channel.hourly_rate(input.value) * building_count,
-                            ));
-                        }
+                    let (_, structure_key) = highest_upgrade.clone().expect("Upgrade should exist");
+                    let production_channel = if let Some(parent) = &structure_key.parent {
+                        let structure = self
+                            .structure_map
+                            .get(parent)
+                            .expect("Structure should exist");
+                        let upgrade = structure
+                            .upgrades
+                            .get(&structure_key.upgrade)
+                            .expect("Upgrade should exist");
+
+                        upgrade.production_channels[structure_key.prod_channel_idx].clone()
+                    } else {
+                        let structure = self
+                            .structure_map
+                            .get(&structure_key.upgrade)
+                            .expect("Structure should exist");
+
+                        structure.default_upgrade.production_channels
+                            [structure_key.prod_channel_idx]
+                            .clone()
+                    };
+
+                    let output_value = structure_key.output.value;
+                    for input in &production_channel.inputs {
+                        let building_count =
+                            current_rate as f32 / production_channel.hourly_rate(output_value);
+
+                        let entry: &mut f32 = buildings.entry(structure_key.clone()).or_default();
+                        *entry += building_count;
+
+                        stack.push((
+                            input.material,
+                            production_channel.hourly_rate(input.value) * building_count,
+                        ));
                     }
                 }
             }
-        }
 
-        let mut power = 0.0;
-        let mut build_costs = HashMap::new();
-        for (structure_key, count) in &buildings {
-            if let Some(parent) = &structure_key.parent {
-                // Non-default upgrade case
-                let structure = self
-                    .structure_map
-                    .get(parent)
-                    .expect("Structure should exist");
-                let upgrade = structure
-                    .upgrades
-                    .get(&structure_key.upgrade)
-                    .expect("Upgrade should exist");
+            for (structure_key, count) in &buildings {
+                if let Some(parent) = &structure_key.parent {
+                    // Non-default upgrade case
+                    let structure = self
+                        .structure_map
+                        .get(parent)
+                        .expect("Structure should exist");
+                    let upgrade = structure
+                        .upgrades
+                        .get(&structure_key.upgrade)
+                        .expect("Upgrade should exist");
 
-                calculate_build_costs(&mut build_costs, &structure.default_upgrade, *count);
-                calculate_build_costs(&mut build_costs, upgrade, *count);
+                    calculate_build_costs(&mut build_costs, &structure.default_upgrade, *count);
+                    calculate_build_costs(&mut build_costs, upgrade, *count);
 
-                power += upgrade.production_channels[structure_key.prod_channel_idx].power
-                    * count.ceil();
-            } else {
-                // Default upgrade case
-                let structure = self
-                    .structure_map
-                    .get(&structure_key.upgrade)
-                    .expect("Structure should exist");
+                    power += upgrade.production_channels[structure_key.prod_channel_idx].power
+                        * count.ceil();
+                } else {
+                    // Default upgrade case
+                    let structure = self
+                        .structure_map
+                        .get(&structure_key.upgrade)
+                        .expect("Structure should exist");
 
-                calculate_build_costs(&mut build_costs, &structure.default_upgrade, *count);
+                    calculate_build_costs(&mut build_costs, &structure.default_upgrade, *count);
 
-                let production_channel =
-                    &structure.default_upgrade.production_channels[structure_key.prod_channel_idx];
-                power += production_channel.power * count.ceil();
+                    let production_channel = &structure.default_upgrade.production_channels
+                        [structure_key.prod_channel_idx];
+                    power += production_channel.power * count.ceil();
+                }
             }
         }
 

@@ -59,10 +59,6 @@ where
 
         let literal = ItemStr::Box(out_str.into());
         tokens.append(literal);
-
-        // quote_in! { *tokens =>
-
-        // }
     }
 }
 
@@ -122,7 +118,7 @@ where
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 pub struct Output {
     pub material: Material,
     pub value: u64,
