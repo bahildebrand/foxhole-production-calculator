@@ -38,7 +38,7 @@ impl Hash for StructureKey {
 pub struct FactoryRequirementsBuilding {
     building: String,
     upgrade: Option<String>,
-    count: u64,
+    count: f32,
 }
 
 #[derive(Debug, PartialEq)]
@@ -197,13 +197,13 @@ impl<'a> ResourceGraph<'a> {
                     FactoryRequirementsBuilding {
                         building: parent,
                         upgrade: Some(building.upgrade),
-                        count: count.ceil() as u64,
+                        count: count,
                     }
                 } else {
                     FactoryRequirementsBuilding {
                         building: building.upgrade,
                         upgrade: None,
-                        count: count.ceil() as u64,
+                        count: count,
                     }
                 }
             })
@@ -312,7 +312,7 @@ mod test {
         let buildings = vec![FactoryRequirementsBuilding {
             building: "upgrade_a".to_string(),
             upgrade: Some("upgrade_a_1".to_string()),
-            count: 5,
+            count: 5.0,
         }];
 
         let build_cost = vec![(Material::BasicMaterials, 10)].into_iter().collect();
