@@ -47,6 +47,7 @@ pub struct FactoryRequirements {
     pub buildings: Vec<FactoryRequirementsBuilding>,
     pub power: f32,
     pub build_cost: HashMap<Material, u64>,
+    pub inputs: HashMap<Material, f32>,
 }
 
 pub struct ResourceGraph<'a> {
@@ -87,6 +88,7 @@ impl<'a> ResourceGraph<'a> {
         let mut stack = Vec::new();
         let mut power = 0.0;
         let mut build_costs = HashMap::new();
+        let mut inputs = HashMap::new();
 
         stack.push((output, rate as f32));
         while let Some((current_input, current_rate)) = stack.pop() {
@@ -156,6 +158,12 @@ impl<'a> ResourceGraph<'a> {
                         production_channel.hourly_rate(input.value) * building_count,
                     ));
                 }
+            } else {
+                // If the material can't be find in output map it cannot be created by a player facility.
+                // Mark how much is needed per hour for later input
+                let entry = inputs.entry(current_input).or_default();
+
+                *entry += current_rate;
             }
         }
 
@@ -214,6 +222,7 @@ impl<'a> ResourceGraph<'a> {
             buildings,
             power,
             build_cost: build_costs,
+            inputs,
         }
     }
 }
