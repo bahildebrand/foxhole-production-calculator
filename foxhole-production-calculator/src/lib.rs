@@ -317,8 +317,6 @@ mod test {
 
         let reqs = rg.calculate_factory_requirements(Material::Coke, 10);
 
-        println!("{:#?}", reqs);
-
         let buildings = vec![FactoryRequirementsBuilding {
             building: "upgrade_a".to_string(),
             upgrade: Some("upgrade_a_1".to_string()),
@@ -326,10 +324,12 @@ mod test {
         }];
 
         let build_cost = vec![(Material::BasicMaterials, 10)].into_iter().collect();
+        let inputs = vec![(Material::Coal, 5.0)].into_iter().collect();
         let expected_reqs = FactoryRequirements {
             buildings,
             power: 5.0,
             build_cost,
+            inputs,
         };
 
         assert_eq!(reqs, expected_reqs);
