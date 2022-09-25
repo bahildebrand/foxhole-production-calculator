@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use clap::Parser;
 use foxhole_production_calculator::ResourceGraph;
 use foxhole_production_calculator_types::Material;
@@ -20,7 +22,7 @@ fn main() {
     let args = Args::parse();
 
     let rg = ResourceGraph::default();
-    let reqs = rg.calculate_factory_requirements(args.material, args.rate);
+    let reqs = rg.calculate_factory_requirements(args.material, args.rate, HashSet::new());
 
     println!("{}", serde_json::to_string_pretty(&reqs).unwrap());
 }

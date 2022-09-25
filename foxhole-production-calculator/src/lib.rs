@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 
 use foxhole_production_calculator_types::Material::{self, *};
@@ -83,90 +83,33 @@ impl<'a> ResourceGraph<'a> {
         &self,
         output: Material,
         rate: u64,
+        user_inputs: HashSet<Material>,
     ) -> FactoryRequirements {
         let mut buildings = HashMap::new();
         let mut stack = Vec::new();
-        let mut power = 0.0;
-        let mut build_costs = HashMap::new();
         let mut inputs = HashMap::new();
 
         stack.push((output, rate as f32));
         while let Some((current_input, current_rate)) = stack.pop() {
             if let Some(upgrades) = self.upgrade_map.get(&current_input) {
-                let mut highest_upgrade = None;
-                for upgrade in upgrades {
-                    for (prod_channel_idx, production_channel) in
-                        upgrade.production_channels.iter().enumerate()
-                    {
-                        // FIXME: This sucks, change outputs to be a map
-                        for output in &production_channel.outputs {
-                            if current_input == output.material {
-                                let structure_key = StructureKey {
-                                    parent: upgrade.parent.clone(),
-                                    upgrade: upgrade.name.clone(),
-                                    prod_channel_idx,
-                                    output: output.clone(),
-                                };
-
-                                if let Some((highest_output_val, upgrade)) = &mut highest_upgrade {
-                                    if output.value > *highest_output_val {
-                                        *highest_output_val = output.value;
-                                        *upgrade = structure_key;
-                                    }
-                                } else {
-                                    highest_upgrade = Some((output.value, structure_key));
-                                }
-
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                let (_, structure_key) = highest_upgrade.clone().expect("Upgrade should exist");
-                let production_channel = if let Some(parent) = &structure_key.parent {
-                    let structure = self
-                        .structure_map
-                        .get(parent)
-                        .expect("Structure should exist");
-                    let upgrade = structure
-                        .upgrades
-                        .get(&structure_key.upgrade)
-                        .expect("Upgrade should exist");
-
-                    upgrade.production_channels[structure_key.prod_channel_idx].clone()
+                if !user_inputs.contains(&current_input) {
+                    self.calculate_building_counts(
+                        upgrades,
+                        &mut buildings,
+                        current_input,
+                        current_rate,
+                        &mut stack,
+                    );
                 } else {
-                    let structure = self
-                        .structure_map
-                        .get(&structure_key.upgrade)
-                        .expect("Structure should exist");
-
-                    structure.default_upgrade.production_channels[structure_key.prod_channel_idx]
-                        .clone()
-                };
-
-                let output_value = structure_key.output.value;
-                for input in &production_channel.inputs {
-                    let building_count =
-                        current_rate as f32 / production_channel.hourly_rate(output_value);
-
-                    let entry: &mut f32 = buildings.entry(structure_key.clone()).or_default();
-                    *entry += building_count;
-
-                    stack.push((
-                        input.material,
-                        production_channel.hourly_rate(input.value) * building_count,
-                    ));
+                    self.calculate_inputs(current_input, current_rate, &mut inputs);
                 }
             } else {
-                // If the material can't be find in output map it cannot be created by a player facility.
-                // Mark how much is needed per hour for later input
-                let entry = inputs.entry(current_input).or_default();
-
-                *entry += current_rate;
+                self.calculate_inputs(current_input, current_rate, &mut inputs);
             }
         }
 
+        let mut build_costs = HashMap::new();
+        let mut power = 0.0;
         for (structure_key, count) in &buildings {
             if let Some(parent) = &structure_key.parent {
                 // Non-default upgrade case
@@ -225,6 +168,92 @@ impl<'a> ResourceGraph<'a> {
             inputs,
         }
     }
+
+    fn calculate_building_counts(
+        &self,
+        upgrades: &[Upgrade],
+        buildings: &mut HashMap<StructureKey, f32>,
+        current_input: Material,
+        current_rate: f32,
+        stack: &mut Vec<(Material, f32)>,
+    ) {
+        let mut highest_upgrade = None;
+        for upgrade in upgrades {
+            for (prod_channel_idx, production_channel) in
+                upgrade.production_channels.iter().enumerate()
+            {
+                // FIXME: This sucks, change outputs to be a map
+                for output in &production_channel.outputs {
+                    if current_input == output.material {
+                        let structure_key = StructureKey {
+                            parent: upgrade.parent.clone(),
+                            upgrade: upgrade.name.clone(),
+                            prod_channel_idx,
+                            output: output.clone(),
+                        };
+
+                        if let Some((highest_output_val, upgrade)) = &mut highest_upgrade {
+                            if output.value > *highest_output_val {
+                                *highest_output_val = output.value;
+                                *upgrade = structure_key;
+                            }
+                        } else {
+                            highest_upgrade = Some((output.value, structure_key));
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        let (_, structure_key) = highest_upgrade.clone().expect("Upgrade should exist");
+        let production_channel = if let Some(parent) = &structure_key.parent {
+            let structure = self
+                .structure_map
+                .get(parent)
+                .expect("Structure should exist");
+            let upgrade = structure
+                .upgrades
+                .get(&structure_key.upgrade)
+                .expect("Upgrade should exist");
+
+            upgrade.production_channels[structure_key.prod_channel_idx].clone()
+        } else {
+            let structure = self
+                .structure_map
+                .get(&structure_key.upgrade)
+                .expect("Structure should exist");
+
+            structure.default_upgrade.production_channels[structure_key.prod_channel_idx].clone()
+        };
+
+        let output_value = structure_key.output.value;
+        for input in &production_channel.inputs {
+            let building_count = current_rate as f32 / production_channel.hourly_rate(output_value);
+
+            let entry: &mut f32 = buildings.entry(structure_key.clone()).or_default();
+            *entry += building_count;
+
+            stack.push((
+                input.material,
+                production_channel.hourly_rate(input.value) * building_count,
+            ));
+        }
+    }
+
+    fn calculate_inputs(
+        &self,
+        current_input: Material,
+        current_rate: f32,
+        inputs: &mut HashMap<Material, f32>,
+    ) {
+        // If the material can't be find in output map it cannot be created by a player facility.
+        // Mark how much is needed per hour for later input
+        let entry = inputs.entry(current_input).or_default();
+
+        *entry += current_rate;
+    }
 }
 
 fn calculate_build_costs(
@@ -269,6 +298,18 @@ mod test {
             Some("upgrade_a".to_string()),
         );
 
+        let upgrade_b = Upgrade::new(
+            "upgrade_b".to_string(),
+            vec![BuildCost::new(Material::BasicMaterials, 1)],
+            vec![ProductionChannel {
+                power: 1.0,
+                rate: 3600,
+                inputs: vec![Input::new(Material::Components, 1)],
+                outputs: vec![Output::new(Material::Rocket4CFire, 1)],
+            }],
+            None,
+        );
+
         let structure_a = Structure::new(
             upgrade_a,
             vec![("upgrade_a_1".to_string(), upgrade_a_1)]
@@ -276,7 +317,9 @@ mod test {
                 .collect(),
         );
 
-        vec![structure_a]
+        let structure_b = Structure::new(upgrade_b, HashMap::new());
+
+        vec![structure_a, structure_b]
     }
 
     fn setup_test_structure_maps(
@@ -315,7 +358,35 @@ mod test {
 
         let rg = ResourceGraph::new(&structure_map, &output_map);
 
-        let reqs = rg.calculate_factory_requirements(Material::Coke, 10);
+        let reqs = rg.calculate_factory_requirements(Material::Rocket4CFire, 10, HashSet::new());
+
+        let buildings = vec![FactoryRequirementsBuilding {
+            building: "upgrade_b".to_string(),
+            upgrade: None,
+            count: 10.0,
+        }];
+
+        let build_cost = vec![(Material::BasicMaterials, 10)].into_iter().collect();
+        let inputs = vec![(Material::Components, 10.0)].into_iter().collect();
+        let expected_reqs = FactoryRequirements {
+            buildings,
+            power: 10.0,
+            build_cost,
+            inputs,
+        };
+
+        assert_eq!(reqs, expected_reqs);
+    }
+
+    #[test]
+    fn test_calc_factory_reqs_user_inputs() {
+        let structures = build_structures();
+        let (structure_map, output_map) = setup_test_structure_maps(&structures);
+
+        let rg = ResourceGraph::new(&structure_map, &output_map);
+
+        let inputs = vec![Material::Components].into_iter().collect();
+        let reqs = rg.calculate_factory_requirements(Material::Coke, 10, inputs);
 
         let buildings = vec![FactoryRequirementsBuilding {
             building: "upgrade_a".to_string(),
