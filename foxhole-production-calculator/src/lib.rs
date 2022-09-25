@@ -5,6 +5,7 @@ use foxhole_production_calculator_types::Material::{self, *};
 use foxhole_production_calculator_types::{
     BuildCost, Input, Output, ProductionChannel, Structure, Upgrade,
 };
+use serde::Serialize;
 
 include!(concat!(env!("OUT_DIR"), "/structures.rs"));
 
@@ -34,14 +35,14 @@ impl Hash for StructureKey {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct FactoryRequirementsBuilding {
     building: String,
     upgrade: Option<String>,
     count: f32,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct FactoryRequirements {
     pub buildings: Vec<FactoryRequirementsBuilding>,
     pub power: f32,
@@ -203,7 +204,7 @@ impl<'a> ResourceGraph<'a> {
                     FactoryRequirementsBuilding {
                         building: building.upgrade,
                         upgrade: None,
-                        count: count,
+                        count,
                     }
                 }
             })

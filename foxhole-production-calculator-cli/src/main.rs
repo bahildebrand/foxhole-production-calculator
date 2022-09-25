@@ -20,9 +20,7 @@ fn main() {
     let args = Args::parse();
 
     let rg = ResourceGraph::default();
+    let reqs = rg.calculate_factory_requirements(args.material, args.rate);
 
-    println!(
-        "{:#?}",
-        rg.calculate_factory_requirements(args.material, args.rate)
-    );
+    println!("{}", serde_json::to_string_pretty(&reqs).unwrap());
 }
