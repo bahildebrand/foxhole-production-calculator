@@ -1,6 +1,6 @@
 [package]
 name = "foxhole-production-calculator-cli"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 license = "MIT"
 description = "API to calculate buildings and resources needed for building production facilities."
@@ -10,7 +10,7 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-foxhole-production-calculator = { path = "../foxhole-production-calculator", version = "0.1" }
+foxhole-production-calculator = { path = "../foxhole-production-calculator", version = "0.2.0" }
 clap = { version = "3.2", features = ["derive"] }
-foxhole-production-calculator-types = { path="../foxhole-production-calculator-types", version = "0.1" }
+foxhole-production-calculator-types = { path="../foxhole-production-calculator-types", version = "0.2.0" }
 serde_json = "1.0"
