@@ -12,7 +12,7 @@ Because I'm a bum and I suck at front end development. Leave me alone.
 
 ## Example
 
-Below is example output for a factory that would output 100 pipes per hour, and take in components from an external source.
+Below is example output for a factory that would output 100 pipes per hour, and take in components from an external source. Note that the building requirements are only for the main structures, and do not include the costs to build foundations, electric poles, etc. There really isn't a good way to calculate how much you would need for these things, as the amount you will build is entirely dependent on your factory layout.
 
 ```
 foxhole-production-calculator-cli pipe 100 -u components
@@ -66,6 +66,10 @@ foxhole-production-calculator-cli pipe 100 -u components
 }
 ```
 
+## Limitations
+
+Currently this tool only calculates the most optimal path through the dependency tree. Optimal in this case means optimizing for the fastest production rate, so choosing buildings that output more of a given resource than another. There may be situations where this is not ideal for your needs. For example you may want to build a factory that minimizes power input at the cost of slower output. For now we don't support those use cases, as it's difficult to enumerate all of the possible value functions that we could use to make decisions when traversing the dependency tree.
+
 ## Installation Instructions
 
 The suggested installation method is using [Cargo](https://doc.rust-lang.org/cargo/). If you do not have cargo installed follow the instructions for your OS at [rustup.rs](https://rustup.rs/).
@@ -112,3 +116,7 @@ OPTIONS:
                                        shell300-mm]
     -V, --version                      Print version information
 ```
+
+## Contributing
+
+PRs and issues are always welcome. Additionally if you find any discrepancies in the factory values please feel free to open a PR with the edited toml files, or open an issue.
