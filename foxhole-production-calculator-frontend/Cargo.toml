@@ -6,4 +6,6 @@ publish = false
 
 [dependencies]
 foxhole-production-calculator = { path = "../foxhole-production-calculator", version = "0.2.0" }
+foxhole-production-calculator-types = { path="../foxhole-production-calculator-types", version = "0.2.0" }
+strum = { version = "0.24", features = ["derive"] }
 yew = "0.19"

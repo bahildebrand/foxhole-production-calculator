@@ -8,9 +8,22 @@ use genco::{
     Tokens,
 };
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumIter};
 
 #[derive(
-    Debug, Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, ValueEnum, PartialOrd, Ord,
+    Debug,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    Hash,
+    Clone,
+    Copy,
+    ValueEnum,
+    PartialOrd,
+    Ord,
+    EnumIter,
+    Display,
 )]
 pub enum Material {
     BasicMaterials,
