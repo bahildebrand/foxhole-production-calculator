@@ -3,5 +3,6 @@
 members = [
     "foxhole-production-calculator",
     "foxhole-production-calculator-types",
-    "foxhole-production-calculator-cli"
+    "foxhole-production-calculator-cli",
+    "foxhole-production-calculator-frontend",
 ]

@@ -1,0 +1,9 @@
+[package]
+name = "foxhole-production-calculator-frontend"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+foxhole-production-calculator = { path = "../foxhole-production-calculator", version = "0.2.0" }
+yew = "0.19"
