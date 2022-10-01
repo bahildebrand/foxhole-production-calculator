@@ -8,7 +8,7 @@ use genco::{
     Tokens,
 };
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumIter};
+use strum::{Display, EnumIter, EnumString};
 
 #[derive(
     Debug,
@@ -24,6 +24,7 @@ use strum::{Display, EnumIter};
     Ord,
     EnumIter,
     Display,
+    EnumString,
 )]
 pub enum Material {
     BasicMaterials,

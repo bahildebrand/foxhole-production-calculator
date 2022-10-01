@@ -1,15 +1,29 @@
+mod resource_selector;
+
+use std::collections::HashSet;
+
+use crate::resource_selector::ResourceSelection;
+
 use foxhole_production_calculator::ResourceGraph;
 use foxhole_production_calculator_types::Material;
-use strum::IntoEnumIterator;
 use yew::prelude::*;
 
-struct Model {
+pub struct CalculationClickedArgs {
+    pub material: Material,
+    pub rate: u64,
+}
+
+enum AppMsg {
+    CalculationClicked(CalculationClickedArgs),
+}
+
+struct App {
     #[allow(dead_code)]
     resource_graph: ResourceGraph<'static>,
 }
 
-impl Component for Model {
-    type Message = ();
+impl Component for App {
+    type Message = AppMsg;
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
@@ -18,17 +32,31 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
-        false
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            AppMsg::CalculationClicked(args) => {
+                let output = self.resource_graph.calculate_factory_requirements(
+                    args.material,
+                    args.rate,
+                    HashSet::new(),
+                );
+
+                log::info!("{:#?}", output);
+            }
+        }
+
+        true
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let _link = ctx.link();
+        let link = ctx.link();
+
+        let calculation_callback = link.callback(AppMsg::CalculationClicked);
         html! {
             <div class="columns is-centered is-multiline">
                 <div class="column is-full">
                     <div class="box">
-                        <p><ResourceSelection /></p>
+                        <p><ResourceSelection {calculation_callback}/></p>
                     </div>
                 </div>
                 <div class="column is-half">
@@ -46,51 +74,8 @@ impl Component for Model {
     }
 }
 
-struct ResourceSelection {}
-
-impl Component for ResourceSelection {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self {}
-    }
-
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
-        false
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let _link = ctx.link();
-        html! {
-            <div class="container">
-            <label class="label">{ "Resource Output" }</label>
-            <div class="field is-grouped">
-                <div class="control">
-                    <div class="select">
-                        <select>
-                            {
-                                Material::iter().map(|material| {
-                                    html! { <option> { format!("{}", material) } </option> }
-                                }).collect::<Html>()
-                            }
-                        </select>
-                    </div>
-                </div>
-                <div class="control">
-                    <input class="input" type="text" placeholder="100"/>
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    <button class="button is-link">{ "Calculate" }</button>
-                </div>
-            </div>
-            </div>
-        }
-    }
-}
-
 fn main() {
-    yew::start_app::<Model>();
+    wasm_logger::init(wasm_logger::Config::default());
+
+    yew::start_app::<App>();
 }
