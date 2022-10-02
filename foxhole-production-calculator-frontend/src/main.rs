@@ -2,7 +2,9 @@ mod components;
 
 use std::collections::{HashMap, HashSet};
 
-use crate::components::{CostDisplay, InputDisplay, ResourceSelection, StructureDisplay};
+use crate::components::{
+    CostDisplay, CustomInputs, InputDisplay, ResourceSelection, StructureDisplay,
+};
 
 use foxhole_production_calculator::{FactoryRequirementsBuilding, ResourceGraph};
 use foxhole_production_calculator_types::Material;
@@ -71,9 +73,14 @@ impl Component for App {
         let power = self.power;
         html! {
             <div class="columns is-centered is-multiline">
-                <div class="column is-full">
+                <div class="column is-half">
                     <div class="box">
                         <ResourceSelection {calculation_callback}/>
+                    </div>
+                </div>
+                <div class="column is-half">
+                    <div class="box">
+                        <CustomInputs/>
                     </div>
                 </div>
                 <div class="column is-one-third">
