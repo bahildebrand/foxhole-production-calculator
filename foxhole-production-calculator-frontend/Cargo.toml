@@ -10,5 +10,5 @@ foxhole-production-calculator-types = { path="../foxhole-production-calculator-t
 log = "0.4"
 strum = { version = "0.24", features = ["derive"] }
 wasm-logger = "0.2"
-web-sys = { version = "0.3", features = ["HtmlSelectElement"] }
+web-sys = { version = "0.3", features = ["HtmlSelectElement", "HtmlButtonElement"] }
 yew = "0.19"
