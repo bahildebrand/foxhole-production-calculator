@@ -1,8 +1,10 @@
+mod input_display;
 mod resource_selector;
 mod structure_display;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
+use crate::input_display::InputDisplay;
 use crate::resource_selector::ResourceSelection;
 use crate::structure_display::StructureDisplay;
 
@@ -22,6 +24,7 @@ enum AppMsg {
 struct App {
     resource_graph: ResourceGraph<'static>,
     buildings: Vec<FactoryRequirementsBuilding>,
+    inputs: HashMap<Material, f32>,
 }
 
 impl Component for App {
@@ -32,6 +35,7 @@ impl Component for App {
         Self {
             resource_graph: ResourceGraph::default(),
             buildings: Vec::new(),
+            inputs: HashMap::new(),
         }
     }
 
@@ -46,6 +50,7 @@ impl Component for App {
 
                 log::info!("{:#?}", reqs);
                 self.buildings = reqs.buildings;
+                self.inputs = reqs.inputs;
             }
         }
 
@@ -56,7 +61,10 @@ impl Component for App {
         let link = ctx.link();
 
         let calculation_callback = link.callback(AppMsg::CalculationClicked);
+
+        // FIXME: These clones suck, figure out lifetimes for references later
         let buildings = self.buildings.clone();
+        let inputs = self.inputs.clone();
         html! {
             <div class="columns is-centered is-multiline">
                 <div class="column is-full">
@@ -71,7 +79,7 @@ impl Component for App {
                 </div>
                 <div class="column is-half">
                     <div class="box">
-                        <p>{"Inputs"}</p>
+                        <InputDisplay {inputs}/>
                     </div>
                 </div>
             </div>
