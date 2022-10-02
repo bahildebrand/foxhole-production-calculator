@@ -33,8 +33,8 @@ impl Component for StructureDisplay {
                             buildings.iter().map(|building| {
                                 html! {
                                     <tr>
-                                        <td>{format!("{}", building.building)}</td>
-                                        <td>{format!("{}", building.upgrade.clone().unwrap_or_else(|| "N/A".to_string()))}</td>
+                                        <td>{building.building.to_string()}</td>
+                                        <td>{building.upgrade.clone().unwrap_or_else(|| "N/A".to_string()).to_string()}</td>
                                         <td>{format!("{}", building.count)}</td>
                                     </tr>
                                 }

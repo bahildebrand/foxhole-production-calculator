@@ -149,7 +149,7 @@ impl<'a> ResourceGraph<'a> {
                     FactoryRequirementsBuilding {
                         building: parent,
                         upgrade: Some(building.upgrade),
-                        count: count,
+                        count,
                     }
                 } else {
                     FactoryRequirementsBuilding {
@@ -207,7 +207,7 @@ impl<'a> ResourceGraph<'a> {
             }
         }
 
-        let (_, structure_key) = highest_upgrade.clone().expect("Upgrade should exist");
+        let (_, structure_key) = highest_upgrade.expect("Upgrade should exist");
         let production_channel = if let Some(parent) = &structure_key.parent {
             let structure = self
                 .structure_map

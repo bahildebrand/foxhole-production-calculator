@@ -25,7 +25,7 @@ impl Component for CustomInputs {
     type Message = CustomInputsMsg;
     type Properties = CustomInputsProps;
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
             custom_inputs: HashSet::new(),
             material_ref: NodeRef::default(),

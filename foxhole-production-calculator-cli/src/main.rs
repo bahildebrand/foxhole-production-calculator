@@ -26,7 +26,7 @@ fn main() {
 
     let rg = ResourceGraph::default();
 
-    let user_inputs = args.user_inputs.unwrap_or_else(Vec::new);
+    let user_inputs = args.user_inputs.unwrap_or_default();
     let reqs = rg.calculate_factory_requirements(
         args.material,
         args.rate,
