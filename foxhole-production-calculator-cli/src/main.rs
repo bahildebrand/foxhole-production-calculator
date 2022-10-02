@@ -27,11 +27,8 @@ fn main() {
     let rg = ResourceGraph::default();
 
     let user_inputs = args.user_inputs.unwrap_or_default();
-    let reqs = rg.calculate_factory_requirements(
-        args.material,
-        args.rate,
-        user_inputs.into_iter().collect(),
-    );
+    let output = vec![(args.material, args.rate)].into_iter().collect();
+    let reqs = rg.calculate_factory_requirements(output, user_inputs.into_iter().collect());
 
     println!("{}", serde_json::to_string_pretty(&reqs).unwrap());
 }

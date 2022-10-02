@@ -10,13 +10,8 @@ use foxhole_production_calculator::{FactoryRequirementsBuilding, ResourceGraph};
 use foxhole_production_calculator_types::Material;
 use yew::prelude::*;
 
-pub struct CalculationClickedArgs {
-    pub material: Material,
-    pub rate: u64,
-}
-
 enum AppMsg {
-    CalculationClicked(CalculationClickedArgs),
+    CalculationClicked(HashMap<Material, u64>),
     CustomInputsUpdate(HashSet<Material>),
 }
 
@@ -46,12 +41,10 @@ impl Component for App {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            AppMsg::CalculationClicked(args) => {
-                let reqs = self.resource_graph.calculate_factory_requirements(
-                    args.material,
-                    args.rate,
-                    self.custom_inputs.clone(),
-                );
+            AppMsg::CalculationClicked(outputs) => {
+                let reqs = self
+                    .resource_graph
+                    .calculate_factory_requirements(outputs, self.custom_inputs.clone());
 
                 log::debug!("{:#?}", reqs);
                 self.buildings = reqs.buildings;

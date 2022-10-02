@@ -81,15 +81,16 @@ impl<'a> ResourceGraph<'a> {
     /// Rate is assumed to be unit/hour.
     pub fn calculate_factory_requirements(
         &self,
-        output: Material,
-        rate: u64,
+        outputs: HashMap<Material, u64>,
         user_inputs: HashSet<Material>,
     ) -> FactoryRequirements {
         let mut buildings = HashMap::new();
         let mut stack = Vec::new();
         let mut inputs = HashMap::new();
 
-        stack.push((output, rate as f32));
+        for (output, rate) in outputs.into_iter() {
+            stack.push((output, rate as f32));
+        }
         while let Some((current_input, current_rate)) = stack.pop() {
             if let Some(upgrades) = self.upgrade_map.get(&current_input) {
                 if !user_inputs.contains(&current_input) {
@@ -358,7 +359,8 @@ mod test {
 
         let rg = ResourceGraph::new(&structure_map, &output_map);
 
-        let reqs = rg.calculate_factory_requirements(Material::Rocket4CFire, 10, HashSet::new());
+        let outputs = vec![(Material::Rocket4CFire, 10)].into_iter().collect();
+        let reqs = rg.calculate_factory_requirements(outputs, HashSet::new());
 
         let buildings = vec![FactoryRequirementsBuilding {
             building: "upgrade_b".to_string(),
@@ -386,7 +388,8 @@ mod test {
         let rg = ResourceGraph::new(&structure_map, &output_map);
 
         let inputs = vec![Material::Components].into_iter().collect();
-        let reqs = rg.calculate_factory_requirements(Material::Coke, 10, inputs);
+        let outputs = vec![(Material::Coke, 10)].into_iter().collect();
+        let reqs = rg.calculate_factory_requirements(outputs, inputs);
 
         let buildings = vec![FactoryRequirementsBuilding {
             building: "upgrade_a".to_string(),
@@ -399,6 +402,46 @@ mod test {
         let expected_reqs = FactoryRequirements {
             buildings,
             power: 5.0,
+            build_cost,
+            inputs,
+        };
+
+        assert_eq!(reqs, expected_reqs);
+    }
+
+    #[test]
+    fn test_calc_factory_reqs_multiple_outputs() {
+        let structures = build_structures();
+        let (structure_map, output_map) = setup_test_structure_maps(&structures);
+
+        let rg = ResourceGraph::new(&structure_map, &output_map);
+
+        let inputs = vec![Material::Components].into_iter().collect();
+        let outputs = vec![(Material::Coke, 10), (Material::Rocket4CFire, 1)]
+            .into_iter()
+            .collect();
+        let reqs = rg.calculate_factory_requirements(outputs, inputs);
+
+        let buildings = vec![
+            FactoryRequirementsBuilding {
+                building: "upgrade_a".to_string(),
+                upgrade: Some("upgrade_a_1".to_string()),
+                count: 5.0,
+            },
+            FactoryRequirementsBuilding {
+                building: "upgrade_b".to_string(),
+                upgrade: None,
+                count: 1.0,
+            },
+        ];
+
+        let build_cost = vec![(Material::BasicMaterials, 11)].into_iter().collect();
+        let inputs = vec![(Material::Coal, 5.0), (Material::Components, 1.0)]
+            .into_iter()
+            .collect();
+        let expected_reqs = FactoryRequirements {
+            buildings,
+            power: 6.0,
             build_cost,
             inputs,
         };
