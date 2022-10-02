@@ -1,12 +1,10 @@
-mod input_display;
-mod resource_selector;
-mod structure_display;
+mod components;
 
 use std::collections::{HashMap, HashSet};
 
-use crate::input_display::InputDisplay;
-use crate::resource_selector::ResourceSelection;
-use crate::structure_display::StructureDisplay;
+use crate::components::InputDisplay;
+use crate::components::ResourceSelection;
+use crate::components::StructureDisplay;
 
 use foxhole_production_calculator::{FactoryRequirementsBuilding, ResourceGraph};
 use foxhole_production_calculator_types::Material;
