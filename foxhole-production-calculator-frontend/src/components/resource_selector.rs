@@ -1,13 +1,13 @@
+use std::string::ToString;
 use std::{collections::HashMap, str::FromStr};
 
 use foxhole_production_calculator_types::Material;
+use itertools::sorted;
 use strum::IntoEnumIterator;
-use web_sys::{HtmlButtonElement, HtmlInputElement, HtmlSelectElement, InputEvent};
+use web_sys::{HtmlInputElement, HtmlSelectElement, InputEvent};
 use yew::prelude::*;
 
 pub enum ResourceSelectionMsg {
-    Calculate,
-    InputChanged,
     OutputAdded,
     OutputCardRemoved(Material),
     OutputCardRateChange((Material, u64)),
@@ -20,9 +20,6 @@ pub struct ResourceSelectionProps {
 
 pub struct ResourceSelection {
     material_ref: NodeRef,
-    input_ref: NodeRef,
-    button_ref: NodeRef,
-    rate: u64,
     outputs: HashMap<Material, u64>,
 }
 
@@ -31,14 +28,6 @@ impl ResourceSelection {
         let material_element = self.material_ref.cast::<HtmlSelectElement>();
 
         material_element.map(|element| Material::from_str(&element.value()).unwrap())
-    }
-
-    fn get_rate(&self) -> Option<u64> {
-        let rate_element = self.input_ref.cast::<HtmlInputElement>();
-
-        rate_element
-            .map(|element| element.value().parse().ok())
-            .flatten()
     }
 }
 
@@ -49,61 +38,36 @@ impl Component for ResourceSelection {
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
             material_ref: NodeRef::default(),
-            input_ref: NodeRef::default(),
-            button_ref: NodeRef::default(),
-            rate: 0,
             outputs: HashMap::new(),
         }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        let props = ctx.props();
         match msg {
-            ResourceSelectionMsg::Calculate => {
-                ctx.props().calculation_callback.emit(self.outputs.clone());
-
-                true
-            }
-            ResourceSelectionMsg::InputChanged => {
-                let button_element = self.button_ref.cast::<HtmlButtonElement>();
-                let input_element = self.input_ref.cast::<HtmlInputElement>();
-                if let (Some(input_element), Some(button_element)) = (input_element, button_element)
-                {
-                    if let Ok(rate) = input_element.value().parse::<u64>() {
-                        self.rate = rate;
-                        button_element.set_disabled(false);
-                        input_element.set_class_name("input");
-
-                        false
-                    } else {
-                        input_element.set_placeholder("Invalid input");
-                        input_element.set_class_name("input is-danger");
-                        button_element.set_disabled(true);
-
-                        true
-                    }
-                } else {
-                    log::error!("Could not find resource selection input element");
-                    false
-                }
-            }
             ResourceSelectionMsg::OutputCardRemoved(material) => {
                 self.outputs.remove(&material);
+                props.calculation_callback.emit(self.outputs.clone());
 
                 true
             }
             ResourceSelectionMsg::OutputCardRateChange((material, rate)) => {
-                let entry = self.outputs.entry(material).or_insert(rate);
-                *entry = rate;
+                {
+                    let entry = self.outputs.entry(material).or_insert(rate);
+                    *entry = rate;
+                }
+                props.calculation_callback.emit(self.outputs.clone());
 
                 true
             }
             ResourceSelectionMsg::OutputAdded => {
-                if let (Some(material), Some(rate)) = (self.get_material(), self.get_rate()) {
-                    self.outputs.insert(material, rate);
+                if let Some(material) = self.get_material() {
+                    self.outputs.insert(material, 1);
+                    props.calculation_callback.emit(self.outputs.clone());
 
                     true
                 } else {
-                    log::error!("Can't parse output");
+                    log::error!("Can't parse material");
 
                     false
                 }
@@ -117,6 +81,16 @@ impl Component for ResourceSelection {
         let remove_callback = link.callback(ResourceSelectionMsg::OutputCardRemoved);
         let rate_change_callback = link.callback(ResourceSelectionMsg::OutputCardRateChange);
 
+        // Remove materials from list if already present
+        let material_list = sorted(Material::iter().filter_map(|material| {
+            if !outputs.contains_key(&material) {
+                Some(material.to_string())
+            } else {
+                None
+            }
+        }))
+        .collect::<Vec<String>>();
+
         html! {
             <div class="container">
             <label class="label">{ "Resource Output" }</label>
@@ -125,7 +99,7 @@ impl Component for ResourceSelection {
                     <div class="select">
                         <select ref={self.material_ref.clone()}>
                             {
-                                Material::iter().map(|material| {
+                                material_list.iter().map(|material| {
                                     html! { <option> { format!("{}", material) } </option> }
                                 }).collect::<Html>()
                             }
@@ -133,27 +107,11 @@ impl Component for ResourceSelection {
                     </div>
                 </div>
                 <div class="control">
-                    <input class="input" type="text" placeholder="Unit/Hour"
-                        ref={self.input_ref.clone()}
-                        onchange={link.callback(|_| ResourceSelectionMsg::InputChanged)}/>
-                </div>
-                <div class="control">
                 <button class="button" onclick={link.callback(|_| ResourceSelectionMsg::OutputAdded)}>
                     <span class="icon">
                         <i class="fa-solid fa-circle-plus"></i>
                     </span>
                 </button>
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    <button
-                        class="button is-link"
-                        ref={self.button_ref.clone()}
-                        onclick={link.callback(|_| ResourceSelectionMsg::Calculate)}
-                        >
-                        { "Calculate" }
-                    </button>
                 </div>
             </div>
             {
