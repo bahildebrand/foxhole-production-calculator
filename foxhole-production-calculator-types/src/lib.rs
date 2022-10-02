@@ -26,6 +26,7 @@ use strum::{Display, EnumIter, EnumString};
     Display,
     EnumString,
 )]
+#[strum(serialize_all = "title_case")]
 pub enum Material {
     BasicMaterials,
     Salvage,
@@ -54,13 +55,21 @@ pub enum Material {
     MetalBeam,
     SandBag,
     BarbedWire,
+    #[strum(serialize = "Rocket 3C High Explosive")]
     Rocket3CHighExplosive,
+    #[strum(serialize = "Rocket 4C Fire")]
     Rocket4CFire,
+    #[strum(serialize = "Shell 75mm")]
     Shell75MM,
+    #[strum(serialize = "Shell 94.5mm")]
     Shell945MM,
+    #[strum(serialize = "Shell 120mm")]
     Shell120MM,
+    #[strum(serialize = "Shell 150mm")]
     Shell150MM,
+    #[strum(serialize = "Shell 250mm")]
     Shell250MM,
+    #[strum(serialize = "Shell 300mm")]
     Shell300MM,
 }
 

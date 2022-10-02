@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::str::FromStr;
 
 use foxhole_production_calculator_types::Material;
+use itertools::sorted;
 use strum::IntoEnumIterator;
 use web_sys::HtmlSelectElement;
 use yew::prelude::*;
@@ -70,8 +71,12 @@ impl Component for CustomInputs {
         let remove_callback = link.callback(CustomInputsMsg::RemoveInput);
         let custom_inputs = &self.custom_inputs;
         let full_material_set = Material::iter().collect::<HashSet<Material>>();
-        let material_set_diff: HashSet<&Material> =
-            full_material_set.difference(&custom_inputs).collect();
+        let material_set_diff: Vec<String> = sorted(
+            full_material_set
+                .difference(custom_inputs)
+                .map(|material| material.to_string()),
+        )
+        .collect();
 
         html! {
             <div class="container">
@@ -82,7 +87,7 @@ impl Component for CustomInputs {
                     <select ref={self.material_ref.clone()}>
                         {
                             material_set_diff.iter().map(|material| {
-                                html! { <option> { format!("{}", material) } </option> }
+                                html! { <option> { material } </option> }
                             }).collect::<Html>()
                         }
                     </select>
