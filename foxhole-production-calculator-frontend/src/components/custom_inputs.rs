@@ -67,8 +67,11 @@ impl Component for CustomInputs {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let link = ctx.link();
-        let custom_inputs = &self.custom_inputs;
         let remove_callback = link.callback(CustomInputsMsg::RemoveInput);
+        let custom_inputs = &self.custom_inputs;
+        let full_material_set = Material::iter().collect::<HashSet<Material>>();
+        let material_set_diff: HashSet<&Material> =
+            full_material_set.difference(&custom_inputs).collect();
 
         html! {
             <div class="container">
@@ -78,7 +81,7 @@ impl Component for CustomInputs {
                 <div class="select">
                     <select ref={self.material_ref.clone()}>
                         {
-                            Material::iter().map(|material| {
+                            material_set_diff.iter().map(|material| {
                                 html! { <option> { format!("{}", material) } </option> }
                             }).collect::<Html>()
                         }
