@@ -2,7 +2,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use foxhole_production_calculator_types::Material;
 use strum::IntoEnumIterator;
-use web_sys::{HtmlButtonElement, HtmlInputElement, HtmlSelectElement};
+use web_sys::{HtmlButtonElement, HtmlInputElement, HtmlSelectElement, InputEvent};
 use yew::prelude::*;
 
 pub enum ResourceSelectionMsg {
@@ -59,17 +59,9 @@ impl Component for ResourceSelection {
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             ResourceSelectionMsg::Calculate => {
-                let material_element = self.material_ref.cast::<HtmlSelectElement>();
-                if let Some(material_element) = material_element {
-                    // This should always match
-                    let material = Material::from_str(&material_element.value()).unwrap();
+                ctx.props().calculation_callback.emit(self.outputs.clone());
 
-                    ctx.props().calculation_callback.emit(self.outputs.clone());
-
-                    true
-                } else {
-                    false
-                }
+                true
             }
             ResourceSelectionMsg::InputChanged => {
                 let button_element = self.button_ref.cast::<HtmlButtonElement>();
@@ -222,7 +214,8 @@ impl Component for OutputCard {
                 let callback = &ctx.props().rate_change_callback;
                 let input_element = self.input_ref.cast::<HtmlInputElement>();
                 if let Some(input_element) = input_element {
-                    if let Ok(rate) = input_element.value().parse::<u64>() {
+                    let input_string = input_element.value();
+                    if let Ok(rate) = input_string.parse::<u64>() {
                         input_element.set_class_name("input");
 
                         callback.emit((material, rate));
@@ -232,7 +225,7 @@ impl Component for OutputCard {
                         input_element.set_placeholder("Invalid input");
                         input_element.set_class_name("input is-danger");
 
-                        true
+                        false
                     }
                 } else {
                     log::error!("Couldn't find input element");
@@ -254,7 +247,7 @@ impl Component for OutputCard {
                     <p class="card-header-title">{material}</p>
                     <input class="input" type="number" min="0" placeholder="Unit/Hour" value={format!("{}", rate)}
                         ref={self.input_ref.clone()}
-                        onchange={link.callback(|_| OutputCardMsg::RateChanged)}/>
+                        oninput={link.callback(|_: InputEvent| OutputCardMsg::RateChanged)}/>
                     <button class="button" onclick={link.callback(|_| OutputCardMsg::RemoveOutput)}>
                         <span class="icon">
                             <i class="fa-solid fa-circle-xmark"></i>
