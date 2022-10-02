@@ -35,11 +35,11 @@ impl Hash for StructureKey {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct FactoryRequirementsBuilding {
-    building: String,
-    upgrade: Option<String>,
-    count: f32,
+    pub building: String,
+    pub upgrade: Option<String>,
+    pub count: f32,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
