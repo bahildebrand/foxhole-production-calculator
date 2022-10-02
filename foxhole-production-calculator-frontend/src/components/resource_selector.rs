@@ -7,6 +7,7 @@ use strum::IntoEnumIterator;
 use web_sys::{HtmlInputElement, HtmlSelectElement, InputEvent};
 use yew::prelude::*;
 
+#[allow(clippy::enum_variant_names)]
 pub enum ResourceSelectionMsg {
     OutputAdded,
     OutputCardRemoved(Material),
@@ -100,7 +101,7 @@ impl Component for ResourceSelection {
                         <select ref={self.material_ref.clone()}>
                             {
                                 material_list.iter().map(|material| {
-                                    html! { <option> { format!("{}", material) } </option> }
+                                    html! { <option> { material.to_string() } </option> }
                                 }).collect::<Html>()
                             }
                         </select>

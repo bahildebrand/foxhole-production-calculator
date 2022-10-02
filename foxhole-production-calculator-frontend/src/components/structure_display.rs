@@ -1,7 +1,7 @@
 use foxhole_production_calculator::FactoryRequirementsBuilding;
 use yew::prelude::*;
 
-#[derive(Clone, PartialEq, Properties)]
+#[derive(Clone, PartialEq, Eq, Properties)]
 pub struct StructureDisplayProps {
     pub buildings: Vec<FactoryRequirementsBuilding>,
 }

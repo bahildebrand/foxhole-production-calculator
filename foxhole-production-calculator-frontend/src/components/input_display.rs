@@ -19,7 +19,13 @@ impl Component for InputDisplay {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let inputs = &ctx.props().inputs;
+        let mut inputs: Vec<(String, f32)> = ctx
+            .props()
+            .inputs
+            .iter()
+            .map(|(material, cost)| (material.to_string(), *cost))
+            .collect();
+        inputs.sort_by(|a, b| a.0.cmp(&b.0));
 
         html! {
             <div class="container">

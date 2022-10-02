@@ -21,7 +21,13 @@ impl Component for CostDisplay {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let power = ctx.props().power;
-        let build_cost = &ctx.props().build_cost;
+        let mut build_cost: Vec<(String, u64)> = ctx
+            .props()
+            .build_cost
+            .iter()
+            .map(|(material, cost)| (material.to_string(), *cost))
+            .collect();
+        build_cost.sort();
 
         html! {
             <div class="container">

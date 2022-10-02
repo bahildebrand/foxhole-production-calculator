@@ -35,14 +35,36 @@ impl Hash for StructureKey {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FactoryRequirementsBuilding {
     pub building: String,
     pub upgrade: Option<String>,
     pub count: f32,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+impl PartialEq for FactoryRequirementsBuilding {
+    fn eq(&self, other: &Self) -> bool {
+        self.building == other.building && self.upgrade == other.upgrade
+    }
+}
+
+impl Eq for FactoryRequirementsBuilding {}
+
+impl PartialOrd for FactoryRequirementsBuilding {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for FactoryRequirementsBuilding {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.building
+            .cmp(&other.building)
+            .then(self.upgrade.cmp(&other.upgrade))
+    }
+}
+
+#[derive(Debug, Serialize, PartialEq)]
 pub struct FactoryRequirements {
     pub buildings: Vec<FactoryRequirementsBuilding>,
     pub power: f32,

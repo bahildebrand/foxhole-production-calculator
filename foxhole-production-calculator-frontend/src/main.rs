@@ -11,7 +11,7 @@ use foxhole_production_calculator_types::Material;
 use yew::prelude::*;
 
 enum AppMsg {
-    CalculationClicked(HashMap<Material, u64>),
+    Calculate(HashMap<Material, u64>),
     CustomInputsUpdate(HashSet<Material>),
 }
 
@@ -19,9 +19,24 @@ struct App {
     resource_graph: ResourceGraph<'static>,
     custom_inputs: HashSet<Material>,
     buildings: Vec<FactoryRequirementsBuilding>,
+    outputs: HashMap<Material, u64>,
     inputs: HashMap<Material, f32>,
     build_cost: HashMap<Material, u64>,
     power: f32,
+}
+
+impl App {
+    fn update_reqs(&mut self) {
+        let reqs = self
+            .resource_graph
+            .calculate_factory_requirements(self.outputs.clone(), self.custom_inputs.clone());
+
+        log::debug!("{:#?}", reqs);
+        self.buildings = reqs.buildings;
+        self.inputs = reqs.inputs;
+        self.power = reqs.power;
+        self.build_cost = reqs.build_cost;
+    }
 }
 
 impl Component for App {
@@ -33,6 +48,7 @@ impl Component for App {
             resource_graph: ResourceGraph::default(),
             custom_inputs: HashSet::new(),
             buildings: Vec::new(),
+            outputs: HashMap::new(),
             inputs: HashMap::new(),
             build_cost: HashMap::new(),
             power: 0.0,
@@ -41,19 +57,15 @@ impl Component for App {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            AppMsg::CalculationClicked(outputs) => {
-                let reqs = self
-                    .resource_graph
-                    .calculate_factory_requirements(outputs, self.custom_inputs.clone());
+            AppMsg::Calculate(outputs) => {
+                self.outputs = outputs;
 
-                log::debug!("{:#?}", reqs);
-                self.buildings = reqs.buildings;
-                self.inputs = reqs.inputs;
-                self.power = reqs.power;
-                self.build_cost = reqs.build_cost;
+                self.update_reqs();
             }
             AppMsg::CustomInputsUpdate(inputs) => {
                 self.custom_inputs = inputs;
+
+                self.update_reqs();
             }
         }
 
@@ -63,11 +75,12 @@ impl Component for App {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let link = ctx.link();
 
-        let calculation_callback = link.callback(AppMsg::CalculationClicked);
+        let calculation_callback = link.callback(AppMsg::Calculate);
         let custom_inputs_callback = link.callback(AppMsg::CustomInputsUpdate);
 
         // FIXME: These clones suck, figure out lifetimes for references later
-        let buildings = self.buildings.clone();
+        let mut buildings = self.buildings.clone();
+        buildings.sort();
         let inputs = self.inputs.clone();
         let build_cost = self.build_cost.clone();
         let power = self.power;
