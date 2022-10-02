@@ -17,10 +17,12 @@ pub struct CalculationClickedArgs {
 
 enum AppMsg {
     CalculationClicked(CalculationClickedArgs),
+    CustomInputsUpdate(HashSet<Material>),
 }
 
 struct App {
     resource_graph: ResourceGraph<'static>,
+    custom_inputs: HashSet<Material>,
     buildings: Vec<FactoryRequirementsBuilding>,
     inputs: HashMap<Material, f32>,
     build_cost: HashMap<Material, u64>,
@@ -34,6 +36,7 @@ impl Component for App {
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
             resource_graph: ResourceGraph::default(),
+            custom_inputs: HashSet::new(),
             buildings: Vec::new(),
             inputs: HashMap::new(),
             build_cost: HashMap::new(),
@@ -47,14 +50,17 @@ impl Component for App {
                 let reqs = self.resource_graph.calculate_factory_requirements(
                     args.material,
                     args.rate,
-                    HashSet::new(),
+                    self.custom_inputs.clone(),
                 );
 
-                log::info!("{:#?}", reqs);
+                log::debug!("{:#?}", reqs);
                 self.buildings = reqs.buildings;
                 self.inputs = reqs.inputs;
                 self.power = reqs.power;
                 self.build_cost = reqs.build_cost;
+            }
+            AppMsg::CustomInputsUpdate(inputs) => {
+                self.custom_inputs = inputs;
             }
         }
 
@@ -65,6 +71,7 @@ impl Component for App {
         let link = ctx.link();
 
         let calculation_callback = link.callback(AppMsg::CalculationClicked);
+        let custom_inputs_callback = link.callback(AppMsg::CustomInputsUpdate);
 
         // FIXME: These clones suck, figure out lifetimes for references later
         let buildings = self.buildings.clone();
@@ -80,7 +87,7 @@ impl Component for App {
                 </div>
                 <div class="column is-half">
                     <div class="box">
-                        <CustomInputs/>
+                        <CustomInputs callback={custom_inputs_callback}/>
                     </div>
                 </div>
                 <div class="column is-one-third">
