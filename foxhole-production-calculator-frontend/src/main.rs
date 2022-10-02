@@ -2,9 +2,7 @@ mod components;
 
 use std::collections::{HashMap, HashSet};
 
-use crate::components::InputDisplay;
-use crate::components::ResourceSelection;
-use crate::components::StructureDisplay;
+use crate::components::{CostDisplay, InputDisplay, ResourceSelection, StructureDisplay};
 
 use foxhole_production_calculator::{FactoryRequirementsBuilding, ResourceGraph};
 use foxhole_production_calculator_types::Material;
@@ -23,6 +21,8 @@ struct App {
     resource_graph: ResourceGraph<'static>,
     buildings: Vec<FactoryRequirementsBuilding>,
     inputs: HashMap<Material, f32>,
+    build_cost: HashMap<Material, u64>,
+    power: f32,
 }
 
 impl Component for App {
@@ -34,6 +34,8 @@ impl Component for App {
             resource_graph: ResourceGraph::default(),
             buildings: Vec::new(),
             inputs: HashMap::new(),
+            build_cost: HashMap::new(),
+            power: 0.0,
         }
     }
 
@@ -49,6 +51,8 @@ impl Component for App {
                 log::info!("{:#?}", reqs);
                 self.buildings = reqs.buildings;
                 self.inputs = reqs.inputs;
+                self.power = reqs.power;
+                self.build_cost = reqs.build_cost;
             }
         }
 
@@ -63,6 +67,8 @@ impl Component for App {
         // FIXME: These clones suck, figure out lifetimes for references later
         let buildings = self.buildings.clone();
         let inputs = self.inputs.clone();
+        let build_cost = self.build_cost.clone();
+        let power = self.power;
         html! {
             <div class="columns is-centered is-multiline">
                 <div class="column is-full">
@@ -70,14 +76,19 @@ impl Component for App {
                         <ResourceSelection {calculation_callback}/>
                     </div>
                 </div>
-                <div class="column is-half">
+                <div class="column is-one-third">
                     <div class="box">
                         <StructureDisplay {buildings}/>
                     </div>
                 </div>
-                <div class="column is-half">
+                <div class="column is-one-third">
                     <div class="box">
                         <InputDisplay {inputs}/>
+                    </div>
+                </div>
+                <div class="column is-one-third">
+                    <div class="box">
+                        <CostDisplay {power} {build_cost}/>
                     </div>
                 </div>
             </div>

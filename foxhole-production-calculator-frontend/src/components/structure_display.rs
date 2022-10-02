@@ -21,7 +21,7 @@ impl Component for StructureDisplay {
 
         html! {
             <div class="container">
-                <label class="label">{ "Structures" }</label>
+                <label class="label">{ "Structures:" }</label>
                 <table class="table">
                     <thead>
                         <th>{"Structure"}</th>

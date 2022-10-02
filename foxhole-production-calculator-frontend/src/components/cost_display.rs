@@ -4,38 +4,41 @@ use foxhole_production_calculator_types::Material;
 use yew::prelude::*;
 
 #[derive(Clone, PartialEq, Properties)]
-pub struct InputDisplayProps {
-    pub inputs: HashMap<Material, f32>,
+pub struct CostDisplayProps {
+    pub power: f32,
+    pub build_cost: HashMap<Material, u64>,
 }
 
-pub struct InputDisplay {}
+pub struct CostDisplay {}
 
-impl Component for InputDisplay {
+impl Component for CostDisplay {
     type Message = ();
-    type Properties = InputDisplayProps;
+    type Properties = CostDisplayProps;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let inputs = &ctx.props().inputs;
+        let power = ctx.props().power;
+        let build_cost = &ctx.props().build_cost;
 
         html! {
             <div class="container">
-                <label class="label">{ "Inputs:" }</label>
+                <label class="label">{ format!("Power: {}", power) }</label>
+                <label class="label">{ "Build Costs:" }</label>
                 <table class="table">
                     <thead>
                         <th>{"Material"}</th>
-                        <th>{"Count"}</th>
+                        <th>{"Cost"}</th>
                     </thead>
                     <tbody>
                         {
-                            inputs.iter().map(|(material, count)| {
+                            build_cost.iter().map(|(material, cost)| {
                                 html! {
                                     <tr>
                                         <td>{format!("{}", material)}</td>
-                                        <td>{format!("{}", count)}</td>
+                                        <td>{format!("{}", cost)}</td>
                                     </tr>
                                 }
                             }).collect::<Html>()
