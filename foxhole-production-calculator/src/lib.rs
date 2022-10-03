@@ -225,13 +225,14 @@ impl<'a> ResourceGraph<'a> {
                             output: output.clone(),
                         };
 
+                        let output_val = production_channel.hourly_rate(output.value);
                         if let Some((highest_output_val, upgrade)) = &mut highest_upgrade {
-                            if output.value > *highest_output_val {
-                                *highest_output_val = output.value;
+                            if output_val > *highest_output_val {
+                                *highest_output_val = output_val;
                                 *upgrade = structure_key;
                             }
                         } else {
-                            highest_upgrade = Some((output.value, structure_key));
+                            highest_upgrade = Some((output_val, structure_key));
                         }
 
                         break;
