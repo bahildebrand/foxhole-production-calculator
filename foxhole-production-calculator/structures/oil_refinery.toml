@@ -57,11 +57,11 @@ build_costs = [
 parent = "Oil Refinery"
 
 [[upgrades."Petrochemical Plant".production_channels]]
-power = 2
-rate = 160
+power = 6
+rate = 200
 inputs = [
-    { material = "Sulfur", value = 20 },
-    { material = "HeavyOil", value = 90 }
+    { material = "Sulfur", value = 60 },
+    { material = "HeavyOil", value = 30 }
 ]
 outputs = [
     { material = "EnrichedOil", value = 90 }

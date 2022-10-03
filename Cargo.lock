@@ -104,6 +104,7 @@ version = "0.2.0"
 dependencies = [
  "foxhole-production-calculator-types",
  "genco",
+ "itertools",
  "lazy_static",
  "serde",
  "toml",

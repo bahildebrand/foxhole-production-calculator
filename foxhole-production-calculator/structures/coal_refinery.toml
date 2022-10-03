@@ -35,7 +35,7 @@ outputs = [
 [upgrades."Coal Liquefier"]
 name = "Coal Liquefier"
 build_costs = [
-    { material = "ProcessedConstructionMaterials", cost = 200 }
+    { material = "ProcessedConstructionMaterials", cost = 20 }
 ]
 parent = "Coal Refinery"
 
@@ -44,7 +44,7 @@ power = 4
 rate = 120
 inputs = [
     { material = "Coal", value = 300 },
-    { material = "Water", value = 75 },
+    { material = "Water", value = 50 },
 ]
 outputs = [
     { material = "ConcreteMaterials", value = 1 },
@@ -54,16 +54,16 @@ outputs = [
 [upgrades."Advanced Coal Liquefier"]
 name = "Advanced Coal Liquefier"
 build_costs = [
-    { material = "SteelConstructionMaterials", cost = 200 }
+    { material = "SteelConstructionMaterials", cost = 65 }
 ]
 parent = "Coal Refinery"
 
 [[upgrades."Advanced Coal Liquefier".production_channels]]
 power = 4
-rate = 120
+rate = 180
 inputs = [
     { material = "Coal", value = 300 },
-    { material = "Water", value = 150 },
+    { material = "Water", value = 100 },
 ]
 outputs = [
     { material = "Coke", value = 260 },

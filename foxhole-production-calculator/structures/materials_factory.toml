@@ -8,7 +8,7 @@ build_costs = [
 power = 2
 rate = 25
 inputs = [
-    { material = "Salvage", value = 20 }
+    { material = "Salvage", value = 10 }
 ]
 outputs = [
     { material = "ConstructionMaterials", value = 1 }
@@ -26,7 +26,7 @@ parent = "Materials Factory"
 power = 4
 rate = 25
 inputs = [
-    { material = "Salvage", value = 20 },
+    { material = "Salvage", value = 15 },
     { material = "Petrol", value = 25 }
 ]
 outputs = [
@@ -44,7 +44,7 @@ parent = "Materials Factory"
 power = 4
 rate = 25
 inputs = [
-    { material = "Salvage", value = 20 },
+    { material = "Salvage", value = 15 },
     { material = "Coke", value = 25 }
 ]
 outputs = [
@@ -62,8 +62,8 @@ parent = "Materials Factory"
 power = 2
 rate = 60
 inputs = [
-    { material = "Salvage", value = 20 },
-    { material = "Coke", value = 180 }
+    { material = "Salvage", value = 15 },
+    { material = "Coke", value = 75 }
 ]
 outputs = [
     { material = "AssemblyMaterialsI", value = 1 }
@@ -73,23 +73,23 @@ outputs = [
 power = 2
 rate = 60
 inputs = [
-    { material = "Salvage", value = 20 },
-    { material = "Petrol", value = 150 }
+    { material = "Salvage", value = 15 },
+    { material = "Petrol", value = 50 }
 ]
 outputs = [
-    { material = "AssemblyMaterialsI", value = 1 }
+    { material = "AssemblyMaterialsII", value = 1 }
 ]
 
-[upgrades."Recycler"]
-name = "Recycler"
+[upgrades."Assembly Bay"]
+name = "Assembly Bay"
 build_costs = [
     { material = "BasicMaterials", cost = 50 }
 ]
 parent = "Materials Factory"
 
-[[upgrades."Recycler".production_channels]]
+[[upgrades."Assembly Bay".production_channels]]
 power = 2
-rate = 60
+rate = 25
 inputs = [
     { material = "Salvage", value = 25 },
 ]
@@ -98,9 +98,9 @@ outputs = [
     { material = "SandBag", value = 5 }
 ]
 
-[[upgrades."Recycler".production_channels]]
+[[upgrades."Assembly Bay".production_channels]]
 power = 2
-rate = 60
+rate = 25
 inputs = [
     { material = "Salvage", value = 25 },
 ]

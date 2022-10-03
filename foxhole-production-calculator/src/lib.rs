@@ -5,6 +5,7 @@ use foxhole_production_calculator_types::Material::{self, *};
 use foxhole_production_calculator_types::{
     BuildCost, Input, Output, ProductionChannel, Structure, Upgrade,
 };
+use itertools::sorted;
 use serde::Serialize;
 
 include!(concat!(env!("OUT_DIR"), "/structures.rs"));
@@ -165,9 +166,9 @@ impl<'a> ResourceGraph<'a> {
             }
         }
 
-        let buildings: Vec<FactoryRequirementsBuilding> = buildings
-            .into_iter()
-            .map(|(building, count)| {
+        // Sort here to avoid non-determinism in test and outputs.
+        let buildings: Vec<FactoryRequirementsBuilding> =
+            sorted(buildings.into_iter().map(|(building, count)| {
                 if let Some(parent) = building.parent {
                     FactoryRequirementsBuilding {
                         building: parent,
@@ -181,7 +182,7 @@ impl<'a> ResourceGraph<'a> {
                         count,
                     }
                 }
-            })
+            }))
             .collect();
 
         FactoryRequirements {
