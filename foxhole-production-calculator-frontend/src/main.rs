@@ -121,6 +121,13 @@ impl Component for App {
                     </div>
                 </div>
             </section>
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    {"Foxhole is a registered trademark of "}<a href="https://www.siegecamp.com/">{"Siege Camp"}</a>
+                    {"    |    "}
+                    <a href="https://github.com/bahildebrand/foxhole-production-calculator"><i class="fa-brands fa-github"></i></a>
+                </div>
+            </footer>
             </div>
         }
     }
