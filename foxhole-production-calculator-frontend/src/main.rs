@@ -85,32 +85,42 @@ impl Component for App {
         let build_cost = self.build_cost.clone();
         let power = self.power;
         html! {
-            <div class="columns is-centered is-multiline">
-                <div class="column is-half">
-                    <div class="box">
-                        <ResourceSelection {calculation_callback}/>
+            <div class="container">
+            <section class="hero is-primary">
+                <div class="hero-body">
+                    <p class="title">{"Foxhole Production Calculator"}</p>
+                    <p class="subtitle">{"Calculate requirements for facilities"}</p>
+                </div>
+            </section>
+            <section class="section">
+                <div class="columns is-centered is-multiline">
+                    <div class="column is-half">
+                        <div class="box">
+                            <ResourceSelection {calculation_callback}/>
+                        </div>
+                    </div>
+                    <div class="column is-half">
+                        <div class="box">
+                            <CustomInputs callback={custom_inputs_callback}/>
+                        </div>
+                    </div>
+                    <div class="column is-one-third">
+                        <div class="box">
+                            <StructureDisplay {buildings}/>
+                        </div>
+                    </div>
+                    <div class="column is-one-third">
+                        <div class="box">
+                            <InputDisplay {inputs}/>
+                        </div>
+                    </div>
+                    <div class="column is-one-third">
+                        <div class="box">
+                            <CostDisplay {power} {build_cost}/>
+                        </div>
                     </div>
                 </div>
-                <div class="column is-half">
-                    <div class="box">
-                        <CustomInputs callback={custom_inputs_callback}/>
-                    </div>
-                </div>
-                <div class="column is-one-third">
-                    <div class="box">
-                        <StructureDisplay {buildings}/>
-                    </div>
-                </div>
-                <div class="column is-one-third">
-                    <div class="box">
-                        <InputDisplay {inputs}/>
-                    </div>
-                </div>
-                <div class="column is-one-third">
-                    <div class="box">
-                        <CostDisplay {power} {build_cost}/>
-                    </div>
-                </div>
+            </section>
             </div>
         }
     }
