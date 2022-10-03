@@ -166,24 +166,33 @@ impl<'a> ResourceGraph<'a> {
             }
         }
 
-        // Sort here to avoid non-determinism in test and outputs.
-        let buildings: Vec<FactoryRequirementsBuilding> =
-            sorted(buildings.into_iter().map(|(building, count)| {
-                if let Some(parent) = building.parent {
-                    FactoryRequirementsBuilding {
-                        building: parent,
-                        upgrade: Some(building.upgrade),
-                        count,
-                    }
-                } else {
-                    FactoryRequirementsBuilding {
-                        building: building.upgrade,
-                        upgrade: None,
-                        count,
-                    }
-                }
-            }))
-            .collect();
+        // Dedupe structures
+        let mut building_map = HashMap::new();
+        for (structure_key, count) in buildings {
+            if let Some(parent) = structure_key.parent {
+                let entry: &mut f32 = building_map
+                    .entry((parent, Some(structure_key.upgrade)))
+                    .or_default();
+
+                *entry += count;
+            } else {
+                let entry = building_map
+                    .entry((structure_key.upgrade, None))
+                    .or_default();
+
+                *entry += count;
+            }
+        }
+
+        //Sort here to avoid non-determinism in test and outputs.
+        let buildings: Vec<FactoryRequirementsBuilding> = sorted(building_map.into_iter().map(
+            |((structure, upgrade), count)| FactoryRequirementsBuilding {
+                building: structure,
+                upgrade: upgrade,
+                count,
+            },
+        ))
+        .collect();
 
         FactoryRequirements {
             buildings,
@@ -325,12 +334,20 @@ mod test {
         let upgrade_b = Upgrade::new(
             "upgrade_b".to_string(),
             vec![BuildCost::new(Material::BasicMaterials, 1)],
-            vec![ProductionChannel {
-                power: 1.0,
-                rate: 3600,
-                inputs: vec![Input::new(Material::Components, 1)],
-                outputs: vec![Output::new(Material::Rocket4CFire, 1)],
-            }],
+            vec![
+                ProductionChannel {
+                    power: 1.0,
+                    rate: 3600,
+                    inputs: vec![Input::new(Material::Components, 1)],
+                    outputs: vec![Output::new(Material::Rocket4CFire, 1)],
+                },
+                ProductionChannel {
+                    power: 1.0,
+                    rate: 3600,
+                    inputs: vec![Input::new(Material::Components, 1)],
+                    outputs: vec![Output::new(Material::Rocket3CHighExplosive, 1)],
+                },
+            ],
             None,
         );
 
@@ -465,6 +482,40 @@ mod test {
         let expected_reqs = FactoryRequirements {
             buildings,
             power: 6.0,
+            build_cost,
+            inputs,
+        };
+
+        assert_eq!(reqs, expected_reqs);
+    }
+
+    #[test]
+    fn test_calc_factory_reqs_multiple_outputs_same_structure() {
+        let structures = build_structures();
+        let (structure_map, output_map) = setup_test_structure_maps(&structures);
+
+        let rg = ResourceGraph::new(&structure_map, &output_map);
+
+        let inputs = vec![Material::Components].into_iter().collect();
+        let outputs = vec![
+            (Material::Rocket3CHighExplosive, 1),
+            (Material::Rocket4CFire, 1),
+        ]
+        .into_iter()
+        .collect();
+        let reqs = rg.calculate_factory_requirements(outputs, inputs);
+
+        let buildings = vec![FactoryRequirementsBuilding {
+            building: "upgrade_b".to_string(),
+            upgrade: None,
+            count: 2.0,
+        }];
+
+        let build_cost = vec![(Material::BasicMaterials, 2)].into_iter().collect();
+        let inputs = vec![(Material::Components, 2.0)].into_iter().collect();
+        let expected_reqs = FactoryRequirements {
+            buildings,
+            power: 2.0,
             build_cost,
             inputs,
         };
