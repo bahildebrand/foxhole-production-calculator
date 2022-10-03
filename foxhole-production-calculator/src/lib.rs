@@ -45,7 +45,9 @@ pub struct FactoryRequirementsBuilding {
 
 impl PartialEq for FactoryRequirementsBuilding {
     fn eq(&self, other: &Self) -> bool {
-        self.building == other.building && self.upgrade == other.upgrade
+        self.building == other.building
+            && self.upgrade == other.upgrade
+            && self.count == other.count
     }
 }
 
