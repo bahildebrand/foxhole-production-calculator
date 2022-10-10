@@ -87,41 +87,42 @@ outputs = [
 
 [[upgrades."Recycler".production_channels]]
 power = 4
-rate = 60
+rate = 90
 inputs = [
-    { material = "Salvage", value = 200 },
+    { material = "DamagedComponents", value = 30 },
 ]
 outputs = [
-    { material = "Components", value = 1 },
+    { material = "Components", value = 20 },
 ]
 
 [upgrades."Engineering Station"]
 name = "Engineering Station"
 build_costs = [
-    { material = "SteelConstructionMaterials", cost = 25 }
+    { material = "ProcessedConstructionMaterials", cost = 150 }
 ]
 parent = "MetalWorks Factory"
 
 [[upgrades."Engineering Station".production_channels]]
 power = 9
-rate = 160
+rate = 90
 inputs = [
     { material = "ProcessedConstructionMaterials", value = 3 },
-    { material = "Components", value = 20 },
-    { material = "EnrichedOil", value = 6 },
+    { material = "Coke", value = 200 },
+    { material = "Sulfur", value = 65 },
+    { material = "HeavyOil", value = 35 },
 ]
 outputs = [
     { material = "SteelConstructionMaterials", value = 1 },
 ]
 
 [[upgrades."Engineering Station".production_channels]]
-power = 8
-rate = 160
+power = 12
+rate = 90
 inputs = [
-    { material = "ProcessedConstructionMaterials", value = 3 },
-    { material = "Components", value = 20 },
-    { material = "EnrichedOil", value = 3 },
-    { material = "Sulfur", value = 20 },
+    { material = "ProcessedConstructionMaterials", value = 9 },
+    { material = "Coke", value = 375 },
+    { material = "EnrichedOil", value = 90 },
+    { material = "Water", value = 100 },
 ]
 outputs = [
     { material = "SteelConstructionMaterials", value = 3 },
@@ -131,8 +132,10 @@ outputs = [
 power = 8
 rate = 160
 inputs = [
-    { material = "SteelConstructionMaterials", value = 1 },
-    { material = "EnrichedOil", value = 6 },
+    { material = "SteelConstructionMaterials", value = 3 },
+    { material = "Coke", value = 245 },
+    { material = "AssemblyMaterialsI", value = 10 },
+    { material = "AssemblyMaterialsII", value = 10 },
 ]
 outputs = [
     { material = "AssemblyMaterialsV", value = 1 },

@@ -35,7 +35,7 @@ outputs = [
 [upgrades."Coal Liquefier"]
 name = "Coal Liquefier"
 build_costs = [
-    { material = "ProcessedConstructionMaterials", cost = 20 }
+    { material = "ProcessedConstructionMaterials", cost = 25 }
 ]
 parent = "Coal Refinery"
 

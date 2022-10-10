@@ -71,6 +71,7 @@ pub enum Material {
     Shell250MM,
     #[strum(serialize = "Shell 300mm")]
     Shell300MM,
+    DamagedComponents,
 }
 
 impl<L> FormatInto<L> for Material

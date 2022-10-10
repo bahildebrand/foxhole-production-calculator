@@ -17,7 +17,7 @@ outputs = [
 
 [[default_upgrade.production_channels]]
 power = 4
-rate = 25
+rate = 30
 inputs = [
     { material = "ConstructionMaterials", value = 5 },
     { material = "HeavyExplosiveMaterials", value = 6 }
@@ -64,7 +64,7 @@ parent = "Ammunition Factory"
 
 [[upgrades."LargeShellFactory".production_channels]]
 power = 4
-rate = 25
+rate = 60
 inputs = [
     { material = "ConstructionMaterials", value = 2 },
     { material = "HeavyExplosiveMaterials", value = 2 }
@@ -75,7 +75,7 @@ outputs = [
 
 [[upgrades."LargeShellFactory".production_channels]]
 power = 4
-rate = 25
+rate = 60
 inputs = [
     { material = "ConstructionMaterials", value = 2 },
     { material = "HeavyExplosiveMaterials", value = 2 }
@@ -86,7 +86,7 @@ outputs = [
 
 [[upgrades."LargeShellFactory".production_channels]]
 power = 6
-rate = 25
+rate = 60
 inputs = [
     { material = "ConstructionMaterials", value = 4 },
     { material = "HeavyExplosiveMaterials", value = 6 }
@@ -97,7 +97,7 @@ outputs = [
 
 [[upgrades."LargeShellFactory".production_channels]]
 power = 4
-rate = 15
+rate = 25
 inputs = [
     { material = "ConstructionMaterials", value = 2 },
     { material = "ExplosiveMaterials", value = 3 }
@@ -108,7 +108,7 @@ outputs = [
 
 [[upgrades."LargeShellFactory".production_channels]]
 power = 4
-rate = 20
+rate = 40
 inputs = [
     { material = "ConstructionMaterials", value = 3 },
     { material = "HeavyExplosiveMaterials", value = 2 }

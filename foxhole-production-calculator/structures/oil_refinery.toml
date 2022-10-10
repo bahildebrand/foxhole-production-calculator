@@ -64,5 +64,5 @@ inputs = [
     { material = "HeavyOil", value = 30 }
 ]
 outputs = [
-    { material = "EnrichedOil", value = 90 }
+    { material = "EnrichedOil", value = 30 }
 ]

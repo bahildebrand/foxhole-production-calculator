@@ -14,7 +14,35 @@ outputs = [
     { material = "ConstructionMaterials", value = 1 }
 ]
 
-# FIXME: Upgrades here need to have multiple routes
+[upgrades."Forge"]
+name = "Forge"
+build_costs = [
+    { material = "ConstructionMaterials", cost = 200 }
+]
+parent = "Materials Factory"
+
+[[upgrades."Forge".production_channels]]
+power = 2
+rate = 60
+inputs = [
+    { material = "Salvage", value = 15 },
+    { material = "Coke", value = 75 }
+]
+outputs = [
+    { material = "AssemblyMaterialsI", value = 1 }
+]
+
+[[upgrades."Forge".production_channels]]
+power = 2
+rate = 60
+inputs = [
+    { material = "Salvage", value = 15 },
+    { material = "Petrol", value = 50 }
+]
+outputs = [
+    { material = "AssemblyMaterialsII", value = 1 }
+]
+
 [upgrades."Metal Press"]
 name = "Metal Press"
 build_costs = [
@@ -49,35 +77,6 @@ inputs = [
 ]
 outputs = [
     { material = "ConstructionMaterials", value = 3 }
-]
-
-[upgrades."Forge"]
-name = "Forge"
-build_costs = [
-    { material = "ConstructionMaterials", cost = 200 }
-]
-parent = "Materials Factory"
-
-[[upgrades."Forge".production_channels]]
-power = 2
-rate = 60
-inputs = [
-    { material = "Salvage", value = 15 },
-    { material = "Coke", value = 75 }
-]
-outputs = [
-    { material = "AssemblyMaterialsI", value = 1 }
-]
-
-[[upgrades."Forge".production_channels]]
-power = 2
-rate = 60
-inputs = [
-    { material = "Salvage", value = 15 },
-    { material = "Petrol", value = 50 }
-]
-outputs = [
-    { material = "AssemblyMaterialsII", value = 1 }
 ]
 
 [upgrades."Assembly Bay"]
