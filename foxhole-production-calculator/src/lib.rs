@@ -5,6 +5,7 @@ use foxhole_production_calculator_types::Material::{self, *};
 use foxhole_production_calculator_types::{
     BuildCost, Input, Output, ProductionChannel, Structure, Upgrade,
 };
+use indextree::{Arena, NodeId};
 use itertools::sorted;
 use serde::Serialize;
 
@@ -34,6 +35,20 @@ impl Hash for StructureKey {
         self.upgrade.hash(state);
         self.prod_channel_idx.hash(state);
     }
+}
+
+#[derive(Debug, Default)]
+pub struct StructureTree {
+    arena: Arena<StructureTreeNode>,
+    root: Option<NodeId>,
+}
+
+impl StructureTree {}
+
+#[derive(Debug)]
+pub struct StructureTreeNode {
+    structure: StructureKey,
+    count: f32,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -109,80 +124,134 @@ impl<'a> ResourceGraph<'a> {
         outputs: HashMap<Material, u64>,
         user_inputs: HashSet<Material>,
     ) -> FactoryRequirements {
-        let mut buildings = HashMap::new();
-        let mut stack = Vec::new();
-        let mut inputs = HashMap::new();
+        let mut trees = Vec::new();
 
         for (output, rate) in outputs.into_iter() {
-            stack.push((output, rate as f32));
-        }
-        while let Some((current_input, current_rate)) = stack.pop() {
-            if let Some(upgrades) = self.upgrade_map.get(&current_input) {
-                if !user_inputs.contains(&current_input) {
-                    self.calculate_building_counts(
-                        upgrades,
-                        &mut buildings,
-                        current_input,
-                        current_rate,
-                        &mut stack,
-                    );
-                } else {
-                    self.calculate_inputs(current_input, current_rate, &mut inputs);
-                }
-            } else {
-                self.calculate_inputs(current_input, current_rate, &mut inputs);
-            }
+            let mut tree = StructureTree::default();
+            let mut stack = vec![(output, rate as f32, None)];
+            self.traverse_building_reqs(&mut stack, &user_inputs, &mut tree);
+            trees.push(tree);
         }
 
+        self.factory_requirements_from_trees(&trees, user_inputs)
+    }
+
+    fn factory_requirements_from_trees(
+        &self,
+        trees: &[StructureTree],
+        user_inputs: HashSet<Material>,
+    ) -> FactoryRequirements {
         let mut build_costs = HashMap::new();
         let mut power = 0.0;
-        for (structure_key, count) in &buildings {
-            if let Some(parent) = &structure_key.parent {
-                // Non-default upgrade case
-                let structure = self
-                    .structure_map
-                    .get(parent)
-                    .expect("Structure should exist");
-                let upgrade = structure
-                    .upgrades
-                    .get(&structure_key.upgrade)
-                    .expect("Upgrade should exist");
+        let mut inputs = HashMap::new();
+        for tree in trees {
+            let root = tree.root.expect("Root should exist");
+            for edge in root.traverse(&tree.arena) {
+                match edge {
+                    indextree::NodeEdge::Start(node_id) => {
+                        let node = tree.arena.get(node_id).expect("Node should exist").get();
+                        if let Some(parent) = &node.structure.parent {
+                            // Non-default upgrade case
+                            let structure = self
+                                .structure_map
+                                .get(parent)
+                                .expect("Structure should exist");
+                            let upgrade = structure
+                                .upgrades
+                                .get(&node.structure.upgrade)
+                                .expect("Upgrade should exist");
 
-                calculate_build_costs(&mut build_costs, &structure.default_upgrade, *count);
-                calculate_build_costs(&mut build_costs, upgrade, *count);
+                            calculate_build_costs(
+                                &mut build_costs,
+                                &structure.default_upgrade,
+                                node.count,
+                            );
+                            calculate_build_costs(&mut build_costs, upgrade, node.count);
 
-                power += upgrade.production_channels[structure_key.prod_channel_idx].power
-                    * count.ceil();
-            } else {
-                // Default upgrade case
-                let structure = self
-                    .structure_map
-                    .get(&structure_key.upgrade)
-                    .expect("Structure should exist");
+                            power += upgrade.production_channels[node.structure.prod_channel_idx]
+                                .power
+                                * node.count.ceil();
+                        } else {
+                            // Default upgrade case
+                            let structure = self
+                                .structure_map
+                                .get(&node.structure.upgrade)
+                                .expect("Structure should exist");
 
-                calculate_build_costs(&mut build_costs, &structure.default_upgrade, *count);
+                            calculate_build_costs(
+                                &mut build_costs,
+                                &structure.default_upgrade,
+                                node.count,
+                            );
 
-                let production_channel =
-                    &structure.default_upgrade.production_channels[structure_key.prod_channel_idx];
-                power += production_channel.power * count.ceil();
+                            let production_channel = &structure.default_upgrade.production_channels
+                                [node.structure.prod_channel_idx];
+                            power += production_channel.power * node.count.ceil();
+                        }
+
+                        // Calculate inputs
+                        let upgrade = if let Some(parent) = &node.structure.parent {
+                            let structure = self
+                                .structure_map
+                                .get(parent)
+                                .expect("Structure should exist");
+
+                            structure
+                                .upgrades
+                                .get(&node.structure.upgrade)
+                                .expect("Upgrade should exist")
+                        } else {
+                            let structure = self
+                                .structure_map
+                                .get(&node.structure.upgrade)
+                                .expect("Structure should exist");
+
+                            &structure.default_upgrade
+                        };
+
+                        let production_channel =
+                            &upgrade.production_channels[node.structure.prod_channel_idx];
+
+                        for input in &production_channel.inputs {
+                            if !self.upgrade_map.contains_key(&input.material)
+                                || user_inputs.contains(&input.material)
+                            {
+                                let rate = production_channel.hourly_rate(input.value) * node.count;
+                                let entry = inputs.entry(input.material).or_default();
+
+                                *entry += rate;
+                            }
+                        }
+                    }
+                    indextree::NodeEdge::End(_node_id) => {}
+                }
             }
         }
 
         // Dedupe structures
         let mut building_map = HashMap::new();
-        for (structure_key, count) in buildings {
-            if let Some(parent) = structure_key.parent {
-                let entry: &mut f32 = building_map
-                    .entry((parent, Some(structure_key.upgrade)))
-                    .or_default();
+        for tree in trees {
+            let root = tree.root.expect("Root should exist");
+            for edge in root.traverse(&tree.arena) {
+                match edge {
+                    indextree::NodeEdge::Start(node_id) => {
+                        let node = tree.arena.get(node_id).expect("Node should exist").get();
+                        if let Some(parent) = node.structure.parent.clone() {
+                            let entry: &mut f32 = building_map
+                                .entry((parent, Some(node.structure.upgrade.clone())))
+                                .or_default();
 
-                *entry += count;
-            } else {
-                let entry = building_map
-                    .entry((structure_key.upgrade, None))
-                    .or_default();
+                            *entry += node.count;
+                        } else {
+                            let entry = building_map
+                                .entry((node.structure.upgrade.clone(), None))
+                                .or_default();
 
-                *entry += count;
+                            *entry += node.count;
+                        }
+                    }
+                    indextree::NodeEdge::End(_node_id) => {}
+                }
             }
         }
 
@@ -190,7 +259,7 @@ impl<'a> ResourceGraph<'a> {
         let buildings: Vec<FactoryRequirementsBuilding> = sorted(building_map.into_iter().map(
             |((structure, upgrade), count)| FactoryRequirementsBuilding {
                 building: structure,
-                upgrade: upgrade,
+                upgrade,
                 count,
             },
         ))
@@ -204,13 +273,36 @@ impl<'a> ResourceGraph<'a> {
         }
     }
 
+    fn traverse_building_reqs(
+        &self,
+        stack: &mut Vec<(Material, f32, Option<NodeId>)>,
+        user_inputs: &HashSet<Material>,
+        tree: &mut StructureTree,
+    ) {
+        while let Some((current_input, current_rate, parent_node)) = stack.pop() {
+            if let Some(upgrades) = self.upgrade_map.get(&current_input) {
+                if !user_inputs.contains(&current_input) {
+                    self.calculate_building_counts(
+                        upgrades,
+                        current_input,
+                        current_rate,
+                        stack,
+                        tree,
+                        parent_node,
+                    );
+                }
+            }
+        }
+    }
+
     fn calculate_building_counts(
         &self,
         upgrades: &[Upgrade],
-        buildings: &mut HashMap<StructureKey, f32>,
         current_input: Material,
         current_rate: f32,
-        stack: &mut Vec<(Material, f32)>,
+        stack: &mut Vec<(Material, f32, Option<NodeId>)>,
+        tree: &mut StructureTree,
+        parent_node: Option<NodeId>,
     ) {
         let mut highest_upgrade = None;
         for upgrade in upgrades {
@@ -265,30 +357,25 @@ impl<'a> ResourceGraph<'a> {
         };
 
         let output_value = structure_key.output.value;
+        let building_count = current_rate as f32 / production_channel.hourly_rate(output_value);
+        let node = StructureTreeNode {
+            structure: structure_key,
+            count: building_count,
+        };
+        let node_id = tree.arena.new_node(node);
+        if let Some(parent_node_id) = parent_node {
+            parent_node_id.append(node_id, &mut tree.arena);
+        } else {
+            tree.root = Some(node_id);
+        }
+
         for input in &production_channel.inputs {
-            let building_count = current_rate as f32 / production_channel.hourly_rate(output_value);
-
-            let entry: &mut f32 = buildings.entry(structure_key.clone()).or_default();
-            *entry += building_count;
-
             stack.push((
                 input.material,
                 production_channel.hourly_rate(input.value) * building_count,
+                Some(node_id),
             ));
         }
-    }
-
-    fn calculate_inputs(
-        &self,
-        current_input: Material,
-        current_rate: f32,
-        inputs: &mut HashMap<Material, f32>,
-    ) {
-        // If the material can't be find in output map it cannot be created by a player facility.
-        // Mark how much is needed per hour for later input
-        let entry = inputs.entry(current_input).or_default();
-
-        *entry += current_rate;
     }
 }
 
@@ -354,6 +441,18 @@ mod test {
             None,
         );
 
+        let upgrade_c = Upgrade::new(
+            "upgrade_c".to_string(),
+            vec![BuildCost::new(Material::BasicMaterials, 1)],
+            vec![ProductionChannel {
+                power: 1.0,
+                rate: 3600,
+                inputs: vec![Input::new(Material::Coke, 1)],
+                outputs: vec![Output::new(Material::ConcreteMaterials, 1)],
+            }],
+            None,
+        );
+
         let structure_a = Structure::new(
             upgrade_a,
             vec![("upgrade_a_1".to_string(), upgrade_a_1)]
@@ -363,7 +462,9 @@ mod test {
 
         let structure_b = Structure::new(upgrade_b, HashMap::new());
 
-        vec![structure_a, structure_b]
+        let structure_c = Structure::new(upgrade_c, HashMap::new());
+
+        vec![structure_a, structure_b, structure_c]
     }
 
     fn setup_test_structure_maps(
@@ -516,6 +617,41 @@ mod test {
 
         let build_cost = vec![(Material::BasicMaterials, 2)].into_iter().collect();
         let inputs = vec![(Material::Components, 2.0)].into_iter().collect();
+        let expected_reqs = FactoryRequirements {
+            buildings,
+            power: 2.0,
+            build_cost,
+            inputs,
+        };
+
+        assert_eq!(reqs, expected_reqs);
+    }
+
+    #[test]
+    fn test_calc_factory_reqs_multiple_levels() {
+        let structures = build_structures();
+        let (structure_map, output_map) = setup_test_structure_maps(&structures);
+
+        let rg = ResourceGraph::new(&structure_map, &output_map);
+
+        let outputs = vec![(Material::ConcreteMaterials, 1)].into_iter().collect();
+        let reqs = rg.calculate_factory_requirements(outputs, HashSet::new());
+
+        let buildings = vec![
+            FactoryRequirementsBuilding {
+                building: "upgrade_a".to_string(),
+                upgrade: Some("upgrade_a_1".to_string()),
+                count: 0.5,
+            },
+            FactoryRequirementsBuilding {
+                building: "upgrade_c".to_string(),
+                upgrade: None,
+                count: 1.0,
+            },
+        ];
+
+        let build_cost = vec![(Material::BasicMaterials, 3)].into_iter().collect();
+        let inputs = vec![(Material::Coal, 0.5)].into_iter().collect();
         let expected_reqs = FactoryRequirements {
             buildings,
             power: 2.0,
