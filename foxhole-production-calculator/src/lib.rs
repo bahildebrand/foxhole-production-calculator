@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 
 use foxhole_production_calculator_types::Material::{self, *};
@@ -40,7 +40,7 @@ impl Hash for StructureKey {
 #[derive(Debug, Default)]
 pub struct StructureTree {
     arena: Arena<StructureTreeNode>,
-    root: Option<NodeId>,
+    root: Option<Vec<NodeId>>,
 }
 
 impl StructureTree {}
@@ -146,78 +146,88 @@ impl<'a> ResourceGraph<'a> {
         let mut power = 0.0;
         let mut inputs = HashMap::new();
         for tree in trees {
-            let root = tree.root.expect("Root should exist");
-            let mut stack = vec![root];
-            while let Some(node_id) = stack.pop() {
-                let node = tree.arena.get(node_id).expect("Node should exist").get();
-                if !node.active {
-                    continue;
-                }
-                for child in node_id.children(&tree.arena) {
-                    stack.push(child);
-                }
+            let roots = tree.root.as_ref().expect("Root should exist");
+            for root in roots {
+                let mut stack = vec![*root];
+                while let Some(node_id) = stack.pop() {
+                    let node = tree.arena.get(node_id).expect("Node should exist").get();
+                    if !node.active {
+                        continue;
+                    }
+                    for child in node_id.children(&tree.arena) {
+                        stack.push(child);
+                    }
 
-                if let Some(parent) = &node.structure.parent {
-                    // Non-default upgrade case
-                    let structure = self
-                        .structure_map
-                        .get(parent)
-                        .expect("Structure should exist");
-                    let upgrade = structure
-                        .upgrades
-                        .get(&node.structure.upgrade)
-                        .expect("Upgrade should exist");
+                    if let Some(parent) = &node.structure.parent {
+                        // Non-default upgrade case
+                        let structure = self
+                            .structure_map
+                            .get(parent)
+                            .expect("Structure should exist");
+                        let upgrade = structure
+                            .upgrades
+                            .get(&node.structure.upgrade)
+                            .expect("Upgrade should exist");
 
-                    calculate_build_costs(&mut build_costs, &structure.default_upgrade, node.count);
-                    calculate_build_costs(&mut build_costs, upgrade, node.count);
+                        calculate_build_costs(
+                            &mut build_costs,
+                            &structure.default_upgrade,
+                            node.count,
+                        );
+                        calculate_build_costs(&mut build_costs, upgrade, node.count);
 
-                    power += upgrade.production_channels[node.structure.prod_channel_idx].power
-                        * node.count.ceil();
-                } else {
-                    // Default upgrade case
-                    let structure = self
-                        .structure_map
-                        .get(&node.structure.upgrade)
-                        .expect("Structure should exist");
+                        power += upgrade.production_channels[node.structure.prod_channel_idx].power
+                            * node.count.ceil();
+                    } else {
+                        // Default upgrade case
+                        let structure = self
+                            .structure_map
+                            .get(&node.structure.upgrade)
+                            .expect("Structure should exist");
 
-                    calculate_build_costs(&mut build_costs, &structure.default_upgrade, node.count);
+                        calculate_build_costs(
+                            &mut build_costs,
+                            &structure.default_upgrade,
+                            node.count,
+                        );
 
-                    let production_channel = &structure.default_upgrade.production_channels
-                        [node.structure.prod_channel_idx];
-                    power += production_channel.power * node.count.ceil();
-                }
+                        let production_channel = &structure.default_upgrade.production_channels
+                            [node.structure.prod_channel_idx];
+                        power += production_channel.power * node.count.ceil();
+                    }
 
-                // Calculate inputs
-                let upgrade = if let Some(parent) = &node.structure.parent {
-                    let structure = self
-                        .structure_map
-                        .get(parent)
-                        .expect("Structure should exist");
+                    // Calculate inputs
+                    let upgrade = if let Some(parent) = &node.structure.parent {
+                        let structure = self
+                            .structure_map
+                            .get(parent)
+                            .expect("Structure should exist");
 
-                    structure
-                        .upgrades
-                        .get(&node.structure.upgrade)
-                        .expect("Upgrade should exist")
-                } else {
-                    let structure = self
-                        .structure_map
-                        .get(&node.structure.upgrade)
-                        .expect("Structure should exist");
+                        structure
+                            .upgrades
+                            .get(&node.structure.upgrade)
+                            .expect("Upgrade should exist")
+                    } else {
+                        let structure = self
+                            .structure_map
+                            .get(&node.structure.upgrade)
+                            .expect("Structure should exist");
 
-                    &structure.default_upgrade
-                };
+                        &structure.default_upgrade
+                    };
 
-                let production_channel =
-                    &upgrade.production_channels[node.structure.prod_channel_idx];
+                    let production_channel =
+                        &upgrade.production_channels[node.structure.prod_channel_idx];
 
-                for input in &production_channel.inputs {
-                    if !self.upgrade_map.contains_key(&input.material)
-                        || user_inputs.contains(&input.material)
-                    {
-                        let rate = production_channel.hourly_rate(input.value) * node.count;
-                        let entry = inputs.entry(input.material).or_default();
+                    for input in &production_channel.inputs {
+                        if !self.upgrade_map.contains_key(&input.material)
+                            || user_inputs.contains(&input.material)
+                        {
+                            let rate = production_channel.hourly_rate(input.value) * node.count;
+                            let entry = inputs.entry(input.material).or_default();
 
-                        *entry += rate;
+                            *entry += rate;
+                        }
                     }
                 }
             }
@@ -226,26 +236,32 @@ impl<'a> ResourceGraph<'a> {
         // Dedupe structures
         let mut building_map = HashMap::new();
         for tree in trees {
-            let root = tree.root.expect("Root should exist");
-            for edge in root.traverse(&tree.arena) {
-                match edge {
-                    indextree::NodeEdge::Start(node_id) => {
-                        let node = tree.arena.get(node_id).expect("Node should exist").get();
-                        if let Some(parent) = node.structure.parent.clone() {
-                            let entry: &mut f32 = building_map
-                                .entry((parent, Some(node.structure.upgrade.clone())))
-                                .or_default();
+            let roots = tree.root.as_ref().expect("Root should exist");
+            for root in roots {
+                for edge in root.traverse(&tree.arena) {
+                    match edge {
+                        indextree::NodeEdge::Start(node_id) => {
+                            let node = tree.arena.get(node_id).expect("Node should exist").get();
+                            if !node.active {
+                                continue;
+                            }
+                            let node = tree.arena.get(node_id).expect("Node should exist").get();
+                            if let Some(parent) = node.structure.parent.clone() {
+                                let entry: &mut f32 = building_map
+                                    .entry((parent, Some(node.structure.upgrade.clone())))
+                                    .or_default();
 
-                            *entry += node.count;
-                        } else {
-                            let entry = building_map
-                                .entry((node.structure.upgrade.clone(), None))
-                                .or_default();
+                                *entry += node.count;
+                            } else {
+                                let entry = building_map
+                                    .entry((node.structure.upgrade.clone(), None))
+                                    .or_default();
 
-                            *entry += node.count;
+                                *entry += node.count;
+                            }
                         }
+                        indextree::NodeEdge::End(_node_id) => {}
                     }
-                    indextree::NodeEdge::End(_node_id) => {}
                 }
             }
         }
@@ -299,7 +315,7 @@ impl<'a> ResourceGraph<'a> {
         tree: &mut StructureTree,
         parent_node: Option<NodeId>,
     ) {
-        let mut highest_upgrade = None;
+        let mut upgrade_list = Vec::new();
         for upgrade in upgrades {
             for (prod_channel_idx, production_channel) in
                 upgrade.production_channels.iter().enumerate()
@@ -315,22 +331,38 @@ impl<'a> ResourceGraph<'a> {
                         };
 
                         let output_val = production_channel.hourly_rate(output.value);
-                        if let Some((highest_output_val, upgrade)) = &mut highest_upgrade {
-                            if output_val > *highest_output_val {
-                                *highest_output_val = output_val;
-                                *upgrade = structure_key;
-                            }
-                        } else {
-                            highest_upgrade = Some((output_val, structure_key));
-                        }
-
-                        break;
+                        upgrade_list.push((output_val, structure_key));
                     }
                 }
             }
         }
 
-        let (_, structure_key) = highest_upgrade.expect("Upgrade should exist");
+        upgrade_list.sort_by(|(a, _), (b, __)| a.partial_cmp(b).unwrap());
+        let mut upgrade_iter = upgrade_list.into_iter().rev();
+        let structure_key = upgrade_iter.next().unwrap().1;
+        self.push_upgrade_to_tree(current_rate, tree, stack, &parent_node, structure_key, true);
+
+        for (_, structure_key) in upgrade_iter {
+            self.push_upgrade_to_tree(
+                current_rate,
+                tree,
+                stack,
+                &parent_node,
+                structure_key,
+                false,
+            );
+        }
+    }
+
+    fn push_upgrade_to_tree(
+        &self,
+        current_rate: f32,
+        tree: &mut StructureTree,
+        stack: &mut Vec<(Material, f32, Option<NodeId>)>,
+        parent_node: &Option<NodeId>,
+        structure_key: StructureKey,
+        active: bool,
+    ) {
         let production_channel = if let Some(parent) = &structure_key.parent {
             let structure = self
                 .structure_map
@@ -356,13 +388,14 @@ impl<'a> ResourceGraph<'a> {
         let node = StructureTreeNode {
             structure: structure_key,
             count: building_count,
-            active: true,
+            active,
         };
         let node_id = tree.arena.new_node(node);
         if let Some(parent_node_id) = parent_node {
             parent_node_id.append(node_id, &mut tree.arena);
         } else {
-            tree.root = Some(node_id);
+            let roots = tree.root.get_or_insert_with(|| Vec::new());
+            roots.push(node_id);
         }
 
         for input in &production_channel.inputs {
