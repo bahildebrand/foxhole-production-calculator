@@ -28,7 +28,9 @@ fn main() {
 
     let user_inputs = args.user_inputs.unwrap_or_default();
     let output = vec![(args.material, args.rate)].into_iter().collect();
-    let reqs = rg.calculate_factory_requirements(output, user_inputs.into_iter().collect());
+    let trees =
+        rg.calculate_factory_requirements(output, user_inputs.clone().into_iter().collect());
+    let reqs = rg.factory_requirements_from_trees(&trees, user_inputs.into_iter().collect());
 
     println!("{}", serde_json::to_string_pretty(&reqs).unwrap());
 }

@@ -1,5 +1,7 @@
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::cell::RefCell;
+use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
+use std::rc::Rc;
 
 use foxhole_production_calculator_types::Material::{self, *};
 use foxhole_production_calculator_types::{
@@ -43,13 +45,36 @@ pub struct StructureTree {
     root: Option<Vec<NodeId>>,
 }
 
-impl StructureTree {}
+impl StructureTree {
+    pub fn activate_node(&mut self, node_id: NodeId) {
+        let upgrade_options = {
+            let node = self.arena.get(node_id).expect("Node should exist").get();
+            // Rc clone is a little sloppy here, but avoids carrying a reference on self
+            node.upgrade_options.clone()
+        };
+        let upgrade_options = upgrade_options.borrow_mut();
+        for option_node_id in upgrade_options.iter() {
+            let node = self
+                .arena
+                .get_mut(*option_node_id)
+                .expect("Node should exist")
+                .get_mut();
+
+            if *option_node_id == node_id {
+                node.active = true;
+            } else {
+                node.active = false;
+            }
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct StructureTreeNode {
     structure: StructureKey,
     count: f32,
     active: bool,
+    upgrade_options: Rc<RefCell<Vec<NodeId>>>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -124,7 +149,7 @@ impl<'a> ResourceGraph<'a> {
         &self,
         outputs: HashMap<Material, u64>,
         user_inputs: HashSet<Material>,
-    ) -> FactoryRequirements {
+    ) -> Vec<StructureTree> {
         let mut trees = Vec::new();
 
         for (output, rate) in outputs.into_iter() {
@@ -134,10 +159,10 @@ impl<'a> ResourceGraph<'a> {
             trees.push(tree);
         }
 
-        self.factory_requirements_from_trees(&trees, user_inputs)
+        trees
     }
 
-    fn factory_requirements_from_trees(
+    pub fn factory_requirements_from_trees(
         &self,
         trees: &[StructureTree],
         user_inputs: HashSet<Material>,
@@ -245,7 +270,6 @@ impl<'a> ResourceGraph<'a> {
                             if !node.active {
                                 continue;
                             }
-                            let node = tree.arena.get(node_id).expect("Node should exist").get();
                             if let Some(parent) = node.structure.parent.clone() {
                                 let entry: &mut f32 = building_map
                                     .entry((parent, Some(node.structure.upgrade.clone())))
@@ -316,6 +340,7 @@ impl<'a> ResourceGraph<'a> {
         parent_node: Option<NodeId>,
     ) {
         let mut upgrade_list = Vec::new();
+        let upgrade_options = Rc::new(RefCell::new(Vec::new()));
         for upgrade in upgrades {
             for (prod_channel_idx, production_channel) in
                 upgrade.production_channels.iter().enumerate()
@@ -340,7 +365,15 @@ impl<'a> ResourceGraph<'a> {
         upgrade_list.sort_by(|(a, _), (b, __)| a.partial_cmp(b).unwrap());
         let mut upgrade_iter = upgrade_list.into_iter().rev();
         let structure_key = upgrade_iter.next().unwrap().1;
-        self.push_upgrade_to_tree(current_rate, tree, stack, &parent_node, structure_key, true);
+        self.push_upgrade_to_tree(
+            current_rate,
+            tree,
+            stack,
+            &parent_node,
+            structure_key,
+            upgrade_options.clone(),
+            true,
+        );
 
         for (_, structure_key) in upgrade_iter {
             self.push_upgrade_to_tree(
@@ -349,11 +382,13 @@ impl<'a> ResourceGraph<'a> {
                 stack,
                 &parent_node,
                 structure_key,
+                upgrade_options.clone(),
                 false,
             );
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn push_upgrade_to_tree(
         &self,
         current_rate: f32,
@@ -361,6 +396,7 @@ impl<'a> ResourceGraph<'a> {
         stack: &mut Vec<(Material, f32, Option<NodeId>)>,
         parent_node: &Option<NodeId>,
         structure_key: StructureKey,
+        upgrade_options: Rc<RefCell<Vec<NodeId>>>,
         active: bool,
     ) {
         let production_channel = if let Some(parent) = &structure_key.parent {
@@ -389,12 +425,19 @@ impl<'a> ResourceGraph<'a> {
             structure: structure_key,
             count: building_count,
             active,
+            upgrade_options,
         };
         let node_id = tree.arena.new_node(node);
+        let node = tree
+            .arena
+            .get_mut(node_id)
+            .expect("Node should exist")
+            .get_mut();
+        node.upgrade_options.borrow_mut().push(node_id);
         if let Some(parent_node_id) = parent_node {
             parent_node_id.append(node_id, &mut tree.arena);
         } else {
-            let roots = tree.root.get_or_insert_with(|| Vec::new());
+            let roots = tree.root.get_or_insert_with(Vec::new);
             roots.push(node_id);
         }
 
@@ -532,17 +575,60 @@ mod test {
 
         let rg = ResourceGraph::new(&structure_map, &output_map);
 
-        let outputs = vec![(Material::Rocket4CFire, 10)].into_iter().collect();
-        let reqs = rg.calculate_factory_requirements(outputs, HashSet::new());
+        let outputs = vec![(Material::Coke, 10)].into_iter().collect();
+        let trees = rg.calculate_factory_requirements(outputs, HashSet::new());
+        let reqs = rg.factory_requirements_from_trees(&trees, HashSet::new());
 
         let buildings = vec![FactoryRequirementsBuilding {
-            building: "upgrade_b".to_string(),
+            building: "upgrade_a".to_string(),
+            upgrade: Some("upgrade_a_1".to_string()),
+            count: 5.0,
+        }];
+
+        let build_cost = vec![(Material::BasicMaterials, 10)].into_iter().collect();
+        let inputs = vec![(Material::Coal, 5.0)].into_iter().collect();
+        let expected_reqs = FactoryRequirements {
+            buildings,
+            power: 5.0,
+            build_cost,
+            inputs,
+        };
+
+        assert_eq!(reqs, expected_reqs);
+    }
+
+    #[test]
+    fn test_calc_factory_reqs_multi_choice_activate_node() {
+        let structures = build_structures();
+        let (structure_map, output_map) = setup_test_structure_maps(&structures);
+
+        let rg = ResourceGraph::new(&structure_map, &output_map);
+
+        let outputs = vec![(Material::Coke, 10)].into_iter().collect();
+        let mut trees = rg.calculate_factory_requirements(outputs, HashSet::new());
+
+        let mut inactive_node_id = None;
+        for node_id in trees[0].root.as_ref().unwrap() {
+            let node = trees[0].arena.get(*node_id).unwrap().get();
+            if !node.active {
+                inactive_node_id = Some(*node_id);
+
+                break;
+            }
+        }
+
+        trees[0].activate_node(
+            inactive_node_id.expect("There should be one inactive tree node in this test"),
+        );
+
+        let buildings = vec![FactoryRequirementsBuilding {
+            building: "upgrade_a".to_string(),
             upgrade: None,
             count: 10.0,
         }];
 
         let build_cost = vec![(Material::BasicMaterials, 10)].into_iter().collect();
-        let inputs = vec![(Material::Components, 10.0)].into_iter().collect();
+        let inputs = vec![(Material::Coal, 10.0)].into_iter().collect();
         let expected_reqs = FactoryRequirements {
             buildings,
             power: 10.0,
@@ -550,6 +636,7 @@ mod test {
             inputs,
         };
 
+        let reqs = rg.factory_requirements_from_trees(&trees, HashSet::new());
         assert_eq!(reqs, expected_reqs);
     }
 
@@ -560,9 +647,10 @@ mod test {
 
         let rg = ResourceGraph::new(&structure_map, &output_map);
 
-        let inputs = vec![Material::Components].into_iter().collect();
+        let inputs: HashSet<Material> = vec![Material::Components].into_iter().collect();
         let outputs = vec![(Material::Coke, 10)].into_iter().collect();
-        let reqs = rg.calculate_factory_requirements(outputs, inputs);
+        let trees = rg.calculate_factory_requirements(outputs, inputs.clone());
+        let reqs = rg.factory_requirements_from_trees(&trees, inputs);
 
         let buildings = vec![FactoryRequirementsBuilding {
             building: "upgrade_a".to_string(),
@@ -589,11 +677,12 @@ mod test {
 
         let rg = ResourceGraph::new(&structure_map, &output_map);
 
-        let inputs = vec![Material::Components].into_iter().collect();
+        let inputs: HashSet<Material> = vec![Material::Components].into_iter().collect();
         let outputs = vec![(Material::Coke, 10), (Material::Rocket4CFire, 1)]
             .into_iter()
             .collect();
-        let reqs = rg.calculate_factory_requirements(outputs, inputs);
+        let trees = rg.calculate_factory_requirements(outputs, inputs.clone());
+        let reqs = rg.factory_requirements_from_trees(&trees, inputs);
 
         let buildings = vec![
             FactoryRequirementsBuilding {
@@ -629,14 +718,15 @@ mod test {
 
         let rg = ResourceGraph::new(&structure_map, &output_map);
 
-        let inputs = vec![Material::Components].into_iter().collect();
+        let inputs: HashSet<Material> = vec![Material::Components].into_iter().collect();
         let outputs = vec![
             (Material::Rocket3CHighExplosive, 1),
             (Material::Rocket4CFire, 1),
         ]
         .into_iter()
         .collect();
-        let reqs = rg.calculate_factory_requirements(outputs, inputs);
+        let trees = rg.calculate_factory_requirements(outputs, inputs.clone());
+        let reqs = rg.factory_requirements_from_trees(&trees, inputs);
 
         let buildings = vec![FactoryRequirementsBuilding {
             building: "upgrade_b".to_string(),
@@ -664,7 +754,8 @@ mod test {
         let rg = ResourceGraph::new(&structure_map, &output_map);
 
         let outputs = vec![(Material::ConcreteMaterials, 1)].into_iter().collect();
-        let reqs = rg.calculate_factory_requirements(outputs, HashSet::new());
+        let trees = rg.calculate_factory_requirements(outputs, HashSet::new());
+        let reqs = rg.factory_requirements_from_trees(&trees, HashSet::new());
 
         let buildings = vec![
             FactoryRequirementsBuilding {

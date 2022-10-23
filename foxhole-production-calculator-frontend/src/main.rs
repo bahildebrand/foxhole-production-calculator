@@ -27,9 +27,12 @@ struct App {
 
 impl App {
     fn update_reqs(&mut self) {
-        let reqs = self
+        let trees = self
             .resource_graph
             .calculate_factory_requirements(self.outputs.clone(), self.custom_inputs.clone());
+        let reqs = self
+            .resource_graph
+            .factory_requirements_from_trees(&trees, self.custom_inputs.clone());
 
         log::debug!("{:#?}", reqs);
         self.buildings = reqs.buildings;
