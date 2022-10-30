@@ -40,7 +40,7 @@ impl Component for InputDisplay {
                             inputs.iter().map(|(material, count)| {
                                 html! {
                                     <tr>
-                                        <td>{format!("{}", material)}</td>
+                                        <td>{material.to_string()}</td>
                                         <td>{format!("{}", count)}</td>
                                     </tr>
                                 }

@@ -127,6 +127,7 @@ version = "0.1.0"
 dependencies = [
  "foxhole-production-calculator",
  "foxhole-production-calculator-types",
+ "indextree",
  "itertools",
  "log",
  "strum",

@@ -7,7 +7,7 @@ use foxhole_production_calculator_types::Material::{self, *};
 use foxhole_production_calculator_types::{
     BuildCost, Input, Output, ProductionChannel, Structure, Upgrade,
 };
-use indextree::{Arena, NodeId};
+use indextree::{Arena, Node, NodeId};
 use itertools::sorted;
 use serde::Serialize;
 
@@ -19,6 +19,15 @@ pub struct StructureKey {
     upgrade: String,
     prod_channel_idx: usize,
     output: Output,
+}
+
+impl StructureKey {
+    fn structure_name(&self) -> String {
+        match &self.parent {
+            Some(parent) => format!("{}-{}", parent, self.upgrade),
+            None => self.upgrade.clone(),
+        }
+    }
 }
 
 impl PartialEq for StructureKey {
@@ -39,10 +48,10 @@ impl Hash for StructureKey {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct StructureTree {
-    arena: Arena<StructureTreeNode>,
-    root: Option<Vec<NodeId>>,
+    pub arena: Arena<StructureTreeNode>,
+    pub roots: Option<Vec<NodeId>>,
 }
 
 impl StructureTree {
@@ -67,14 +76,36 @@ impl StructureTree {
             }
         }
     }
+
+    pub fn get_node(&self, node_id: NodeId) -> Option<&StructureTreeNode> {
+        self.arena.get(node_id).map(|node| node.get())
+    }
+
+    pub fn get_arena_node(&self, node_id: NodeId) -> Option<&Node<StructureTreeNode>> {
+        self.arena.get(node_id)
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StructureTreeNode {
     structure: StructureKey,
     count: f32,
     active: bool,
     upgrade_options: Rc<RefCell<Vec<NodeId>>>,
+}
+
+impl StructureTreeNode {
+    pub fn structure_name(&self) -> String {
+        self.structure.structure_name()
+    }
+
+    pub fn count(&self) -> f32 {
+        self.count
+    }
+
+    pub fn is_active(&self) -> bool {
+        self.active
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -171,7 +202,11 @@ impl<'a> ResourceGraph<'a> {
         let mut power = 0.0;
         let mut inputs = HashMap::new();
         for tree in trees {
-            let roots = tree.root.as_ref().expect("Root should exist");
+            let roots = if let Some(roots) = &tree.roots {
+                roots
+            } else {
+                break;
+            };
             for root in roots {
                 let mut stack = vec![*root];
                 while let Some(node_id) = stack.pop() {
@@ -261,7 +296,11 @@ impl<'a> ResourceGraph<'a> {
         // Dedupe structures
         let mut building_map = HashMap::new();
         for tree in trees {
-            let roots = tree.root.as_ref().expect("Root should exist");
+            let roots = if let Some(roots) = &tree.roots {
+                roots
+            } else {
+                break;
+            };
             for root in roots {
                 for edge in root.traverse(&tree.arena) {
                     match edge {
@@ -437,7 +476,7 @@ impl<'a> ResourceGraph<'a> {
         if let Some(parent_node_id) = parent_node {
             parent_node_id.append(node_id, &mut tree.arena);
         } else {
-            let roots = tree.root.get_or_insert_with(Vec::new);
+            let roots = tree.roots.get_or_insert_with(Vec::new);
             roots.push(node_id);
         }
 
@@ -608,7 +647,7 @@ mod test {
         let mut trees = rg.calculate_factory_requirements(outputs, HashSet::new());
 
         let mut inactive_node_id = None;
-        for node_id in trees[0].root.as_ref().unwrap() {
+        for node_id in trees[0].roots.as_ref().unwrap() {
             let node = trees[0].arena.get(*node_id).unwrap().get();
             if !node.active {
                 inactive_node_id = Some(*node_id);

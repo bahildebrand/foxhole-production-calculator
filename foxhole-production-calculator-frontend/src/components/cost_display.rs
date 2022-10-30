@@ -43,8 +43,8 @@ impl Component for CostDisplay {
                             build_cost.iter().map(|(material, cost)| {
                                 html! {
                                     <tr>
-                                        <td>{format!("{}", material)}</td>
-                                        <td>{format!("{}", cost)}</td>
+                                        <td>{ material.to_string() }</td>
+                                        <td>{ cost.to_string() }</td>
                                     </tr>
                                 }
                             }).collect::<Html>()

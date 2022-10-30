@@ -4,9 +4,10 @@ use std::collections::{HashMap, HashSet};
 
 use crate::components::{
     CostDisplay, CustomInputs, InputDisplay, ResourceSelection, StructureDisplay,
+    StructureTreeDisplay,
 };
 
-use foxhole_production_calculator::{FactoryRequirementsBuilding, ResourceGraph};
+use foxhole_production_calculator::{FactoryRequirementsBuilding, ResourceGraph, StructureTree};
 use foxhole_production_calculator_types::Material;
 use yew::prelude::*;
 
@@ -23,6 +24,7 @@ struct App {
     inputs: HashMap<Material, f32>,
     build_cost: HashMap<Material, u64>,
     power: f32,
+    trees: Vec<StructureTree>,
 }
 
 impl App {
@@ -34,11 +36,11 @@ impl App {
             .resource_graph
             .factory_requirements_from_trees(&trees, self.custom_inputs.clone());
 
-        log::debug!("{:#?}", reqs);
         self.buildings = reqs.buildings;
         self.inputs = reqs.inputs;
         self.power = reqs.power;
         self.build_cost = reqs.build_cost;
+        self.trees = trees;
     }
 }
 
@@ -55,6 +57,7 @@ impl Component for App {
             inputs: HashMap::new(),
             build_cost: HashMap::new(),
             power: 0.0,
+            trees: Vec::new(),
         }
     }
 
@@ -87,6 +90,7 @@ impl Component for App {
         let inputs = self.inputs.clone();
         let build_cost = self.build_cost.clone();
         let power = self.power;
+        let trees = self.trees.clone();
         html! {
             <div class="container">
             <section class="hero is-primary">
@@ -105,6 +109,11 @@ impl Component for App {
                     <div class="column is-half">
                         <div class="box">
                             <CustomInputs callback={custom_inputs_callback}/>
+                        </div>
+                    </div>
+                    <div class="column is-full">
+                        <div class="box">
+                            <StructureTreeDisplay {trees}/>
                         </div>
                     </div>
                     <div class="column is-one-third">
