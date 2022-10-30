@@ -55,7 +55,13 @@ impl Component for StructureTreeDisplay {
                             .as_ref()
                             .unwrap()
                             .iter()
-                            .map(|root| process_node(root, tree, &active_callback, tree_idx))
+                            .map(|root| {
+                                html! {
+                                    <ul>
+                                        { process_node(root, tree, &active_callback, tree_idx) }
+                                    </ul>
+                                }
+                            })
                             .collect::<Html>()
                     })
                     .collect::<Html>()
@@ -75,25 +81,23 @@ fn process_node(
     let node = arena_node.get();
 
     if node.is_active() {
-        html! {
-            <ul>
-            {
-                // Check if node has children
-                if arena_node.last_child().is_some() {
-                    html! {
-                        <li>{enumerate_options(node, tree, active_callback.clone(), tree_idx)}
-                            {
-                                node_id.children(&tree.arena).map(|child| process_node(&child, tree, active_callback, tree_idx)).collect::<Html>()
-                            }
-                        </li>
-                    }
-                } else {
-                    html! {
-                        <li>{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</li>
-                    }
+        {
+            // Check if node has children
+            if arena_node.last_child().is_some() {
+                html! {
+                    <li>{enumerate_options(node, tree, active_callback.clone(), tree_idx)}
+                        <ul>
+                        {
+                            node_id.children(&tree.arena).map(|child| process_node(&child, tree, active_callback, tree_idx)).collect::<Html>()
+                        }
+                        </ul>
+                    </li>
+                }
+            } else {
+                html! {
+                    <li>{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</li>
                 }
             }
-            </ul>
         }
     } else {
         html! {}
