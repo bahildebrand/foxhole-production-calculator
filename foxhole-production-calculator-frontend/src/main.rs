@@ -1,6 +1,10 @@
 mod components;
 
-use std::collections::{HashMap, HashSet};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
 
 use crate::components::{
     CostDisplay, CustomInputs, InputDisplay, ResourceSelection, StructureDisplay,
@@ -14,6 +18,7 @@ use yew::prelude::*;
 enum AppMsg {
     Calculate(HashMap<Material, u64>),
     CustomInputsUpdate(HashSet<Material>),
+    TreeUpdate,
 }
 
 struct App {
@@ -24,7 +29,7 @@ struct App {
     inputs: HashMap<Material, f32>,
     build_cost: HashMap<Material, u64>,
     power: f32,
-    trees: Vec<StructureTree>,
+    trees: Rc<RefCell<Vec<StructureTree>>>,
 }
 
 impl App {
@@ -40,7 +45,7 @@ impl App {
         self.inputs = reqs.inputs;
         self.power = reqs.power;
         self.build_cost = reqs.build_cost;
-        self.trees = trees;
+        self.trees = Rc::new(RefCell::new(trees));
     }
 }
 
@@ -57,7 +62,7 @@ impl Component for App {
             inputs: HashMap::new(),
             build_cost: HashMap::new(),
             power: 0.0,
-            trees: Vec::new(),
+            trees: Rc::new(RefCell::new(Vec::new())),
         }
     }
 
@@ -73,6 +78,17 @@ impl Component for App {
 
                 self.update_reqs();
             }
+            AppMsg::TreeUpdate => {
+                let reqs = self.resource_graph.factory_requirements_from_trees(
+                    self.trees.borrow().as_ref(),
+                    self.custom_inputs.clone(),
+                );
+
+                self.buildings = reqs.buildings;
+                self.inputs = reqs.inputs;
+                self.power = reqs.power;
+                self.build_cost = reqs.build_cost;
+            }
         }
 
         true
@@ -83,6 +99,7 @@ impl Component for App {
 
         let calculation_callback = link.callback(AppMsg::Calculate);
         let custom_inputs_callback = link.callback(AppMsg::CustomInputsUpdate);
+        let tree_update_callback = link.callback(|()| AppMsg::TreeUpdate);
 
         // FIXME: These clones suck, figure out lifetimes for references later
         let mut buildings = self.buildings.clone();
@@ -113,7 +130,7 @@ impl Component for App {
                     </div>
                     <div class="column is-full">
                         <div class="box">
-                            <StructureTreeDisplay {trees}/>
+                            <StructureTreeDisplay {trees} {tree_update_callback}/>
                         </div>
                     </div>
                     <div class="column is-one-third">

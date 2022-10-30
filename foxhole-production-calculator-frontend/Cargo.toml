@@ -5,8 +5,8 @@ edition = "2021"
 publish = false
 
 [dependencies]
-foxhole-production-calculator = { path = "../foxhole-production-calculator", version = "0.2.0" }
-foxhole-production-calculator-types = { path="../foxhole-production-calculator-types", version = "0.2.0" }
+foxhole-production-calculator = { path = "../foxhole-production-calculator", version = "0.2" }
+foxhole-production-calculator-types = { path="../foxhole-production-calculator-types", version = "0.2" }
 indextree = "4.5"
 itertools = "0.10"
 log = "0.4"

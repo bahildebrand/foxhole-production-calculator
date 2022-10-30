@@ -106,6 +106,10 @@ impl StructureTreeNode {
     pub fn is_active(&self) -> bool {
         self.active
     }
+
+    pub fn options(&self) -> Rc<RefCell<Vec<NodeId>>> {
+        self.upgrade_options.clone()
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
