@@ -85,7 +85,7 @@ fn process_node(
             // Check if node has children
             if arena_node.last_child().is_some() {
                 html! {
-                    <li>{enumerate_options(node, tree, active_callback.clone(), tree_idx)}
+                    <li>{node.output()}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}
                         <ul>
                         {
                             node_id.children(&tree.arena).map(|child| process_node(&child, tree, active_callback, tree_idx)).collect::<Html>()
@@ -95,7 +95,7 @@ fn process_node(
                 }
             } else {
                 html! {
-                    <li>{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</li>
+                    <li>{node.output()}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</li>
                 }
             }
         }

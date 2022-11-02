@@ -84,6 +84,10 @@ impl StructureTree {
     pub fn get_arena_node(&self, node_id: NodeId) -> Option<&Node<StructureTreeNode>> {
         self.arena.get(node_id)
     }
+
+    pub fn traverse(&self) -> StructureTreeTraversal {
+        StructureTreeTraversal::new(self)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -109,6 +113,55 @@ impl StructureTreeNode {
 
     pub fn options(&self) -> Rc<RefCell<Vec<NodeId>>> {
         self.upgrade_options.clone()
+    }
+
+    pub fn output(&self) -> String {
+        let output = &self.structure.output;
+        format!("{} - {}", output.material, output.value)
+    }
+}
+
+pub struct StructureTreeTraversal<'a> {
+    arena: &'a Arena<StructureTreeNode>,
+    stack: Vec<NodeId>,
+}
+
+impl<'a> StructureTreeTraversal<'a> {
+    fn new(tree: &'a StructureTree) -> Self {
+        let mut stack = Vec::new();
+        if let Some(roots) = &tree.roots {
+            for root in roots {
+                if tree.get_node(*root).expect("Node sould exist").is_active() {
+                    stack.push(*root);
+                }
+            }
+        }
+
+        Self {
+            arena: &tree.arena,
+            stack,
+        }
+    }
+}
+
+impl<'a> Iterator for StructureTreeTraversal<'a> {
+    type Item = &'a StructureTreeNode;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let node_id = self.stack.pop();
+
+        node_id
+            .map(|node_id| {
+                for child in node_id.children(&self.arena) {
+                    let node = self.arena.get(child).expect("Node should exist").get();
+                    if node.is_active() {
+                        self.stack.push(child);
+                    }
+                }
+
+                self.arena.get(node_id).map(|node_id| node_id.get())
+            })
+            .flatten()
     }
 }
 
@@ -300,35 +353,22 @@ impl<'a> ResourceGraph<'a> {
         // Dedupe structures
         let mut building_map = HashMap::new();
         for tree in trees {
-            let roots = if let Some(roots) = &tree.roots {
-                roots
-            } else {
-                break;
-            };
-            for root in roots {
-                for edge in root.traverse(&tree.arena) {
-                    match edge {
-                        indextree::NodeEdge::Start(node_id) => {
-                            let node = tree.arena.get(node_id).expect("Node should exist").get();
-                            if !node.active {
-                                continue;
-                            }
-                            if let Some(parent) = node.structure.parent.clone() {
-                                let entry: &mut f32 = building_map
-                                    .entry((parent, Some(node.structure.upgrade.clone())))
-                                    .or_default();
+            for node in tree.traverse() {
+                if !node.active {
+                    continue;
+                }
+                if let Some(parent) = node.structure.parent.clone() {
+                    let entry: &mut f32 = building_map
+                        .entry((parent, Some(node.structure.upgrade.clone())))
+                        .or_default();
 
-                                *entry += node.count;
-                            } else {
-                                let entry = building_map
-                                    .entry((node.structure.upgrade.clone(), None))
-                                    .or_default();
+                    *entry += node.count;
+                } else {
+                    let entry = building_map
+                        .entry((node.structure.upgrade.clone(), None))
+                        .or_default();
 
-                                *entry += node.count;
-                            }
-                        }
-                        indextree::NodeEdge::End(_node_id) => {}
-                    }
+                    *entry += node.count;
                 }
             }
         }
