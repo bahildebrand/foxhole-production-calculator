@@ -85,7 +85,7 @@ fn process_node(
             // Check if node has children
             if arena_node.last_child().is_some() {
                 html! {
-                    <li>{node.output()}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}
+                    <li><div class="buttons has-addons">{format!("{}: ", node.output())}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</div>
                         <ul>
                         {
                             node_id.children(&tree.arena).map(|child| process_node(&child, tree, active_callback, tree_idx)).collect::<Html>()
@@ -95,7 +95,9 @@ fn process_node(
                 }
             } else {
                 html! {
-                    <li>{node.output()}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</li>
+                    <li>
+                        <div class="buttons has-addons">{format!("{}: ", node.output())}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</div>
+                    </li>
                 }
             }
         }
@@ -112,23 +114,27 @@ fn enumerate_options(
 ) -> Html {
     let options = node.options();
     let options_ref = options.borrow();
-    log::debug!("{:#?}", *options_ref);
-    options_ref
-        .iter()
-        .map(|node_id| {
-            let node = tree.get_node(*node_id).expect("Node should exist");
-            let display_text = format!("{:.4} - {}", node.count(), node.structure_name());
 
-            html! {
-                <StructureOptionButton
+    html! {
+        {
+            options_ref
+            .iter()
+            .map(|node_id| {
+                let node = tree.get_node(*node_id).expect("Node should exist");
+                let display_text = format!("{:.3} - {}", node.count(), node.structure_name());
+
+                html! {
+                    <StructureOptionButton
                     node_id={*node_id}
                     tree_idx={tree_idx}
                     active={node.is_active()}
                     active_callback={active_callback.clone()}
                     display_text={display_text}/>
-            }
-        })
-        .collect::<Html>()
+                }
+            })
+            .collect::<Html>()
+        }
+    }
 }
 
 pub enum StructureOptionButtonMsg {
@@ -173,9 +179,9 @@ impl Component for StructureOptionButton {
         let link = ctx.link();
         let display_text = &ctx.props().display_text;
         let class = if ctx.props().active {
-            "button is-rounded is-primary"
+            "button is-rounded is-primary is-small"
         } else {
-            "button is-rounded"
+            "button is-rounded is-small"
         };
 
         html! {
