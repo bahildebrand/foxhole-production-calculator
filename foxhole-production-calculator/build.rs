@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fs::File;
 use std::{collections::HashMap, env};
 
@@ -98,12 +99,14 @@ fn generate_output_map(tokens: &mut Tokens<lang::Rust>, structures: &HashMap<Str
     tokens.push();
 }
 
-fn parse_upgrade(upgrade_map: &mut HashMap<Material, Vec<Upgrade>>, upgrade: &Upgrade) {
+fn parse_upgrade(upgrade_map: &mut HashMap<Material, HashSet<Upgrade>>, upgrade: &Upgrade) {
     for production_channel in &upgrade.production_channels {
         for output in &production_channel.outputs {
-            let entry = upgrade_map.entry(output.material).or_insert_with(Vec::new);
+            let entry = upgrade_map
+                .entry(output.material)
+                .or_insert_with(HashSet::new);
 
-            entry.push(upgrade.clone());
+            entry.insert(upgrade.clone());
         }
     }
 }

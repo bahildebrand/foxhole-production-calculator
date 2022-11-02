@@ -107,6 +107,7 @@ dependencies = [
  "indextree",
  "itertools",
  "lazy_static",
+ "log",
  "serde",
  "toml",
 ]

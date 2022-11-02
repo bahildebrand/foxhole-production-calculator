@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, hash::Hash};
 
 use clap::ValueEnum;
 use genco::{
@@ -236,6 +236,21 @@ impl Upgrade {
             production_channels,
             parent,
         }
+    }
+}
+
+impl PartialEq for Upgrade {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.parent == other.parent
+    }
+}
+
+impl Eq for Upgrade {}
+
+impl Hash for Upgrade {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
+        self.parent.hash(state);
     }
 }
 

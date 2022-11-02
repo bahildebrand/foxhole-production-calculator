@@ -24,7 +24,7 @@ pub struct StructureKey {
 impl StructureKey {
     fn structure_name(&self) -> String {
         match &self.parent {
-            Some(parent) => format!("{}-{}", parent, self.upgrade),
+            Some(parent) => format!("{}-{}", parent, self.upgrade,),
             None => self.upgrade.clone(),
         }
     }

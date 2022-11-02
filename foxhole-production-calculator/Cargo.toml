@@ -13,6 +13,7 @@ readme = "README.md"
 indextree = "4.5"
 itertools = "0.10"
 lazy_static = "1.4"
+log = "0.4"
 foxhole-production-calculator-types = { path = "../foxhole-production-calculator-types", version = "0.2.0" }
 serde = { version = "1.0", features = ["derive"] }
 
