@@ -172,9 +172,14 @@ impl Component for StructureOptionButton {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let link = ctx.link();
         let display_text = &ctx.props().display_text;
+        let class = if ctx.props().active {
+            "button is-rounded is-primary"
+        } else {
+            "button is-rounded"
+        };
 
         html! {
-            <button class="button" onclick={link.callback(|_| StructureOptionButtonMsg::Activated)}>
+            <button class={class} onclick={link.callback(|_| StructureOptionButtonMsg::Activated)}>
                 {display_text}
             </button>
         }
