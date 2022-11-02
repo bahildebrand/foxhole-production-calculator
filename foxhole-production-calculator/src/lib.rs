@@ -96,6 +96,7 @@ pub struct StructureTreeNode {
     count: f32,
     active: bool,
     upgrade_options: Rc<RefCell<Vec<NodeId>>>,
+    output: Output,
 }
 
 impl StructureTreeNode {
@@ -116,8 +117,7 @@ impl StructureTreeNode {
     }
 
     pub fn output(&self) -> String {
-        let output = &self.structure.output;
-        format!("{} - {}", output.material, output.value)
+        format!("{} - {}", self.output.material, self.output.value)
     }
 }
 
@@ -502,13 +502,19 @@ impl<'a> ResourceGraph<'a> {
             structure.default_upgrade.production_channels[structure_key.prod_channel_idx].clone()
         };
 
+        let output_material = structure_key.output.material;
         let output_value = structure_key.output.value;
-        let building_count = current_rate as f32 / production_channel.hourly_rate(output_value);
+        let hourly_rate = production_channel.hourly_rate(output_value);
+        let building_count = current_rate as f32 / hourly_rate;
         let node = StructureTreeNode {
             structure: structure_key,
             count: building_count,
             active,
             upgrade_options,
+            output: Output::new(
+                output_material,
+                (hourly_rate * building_count).ceil() as u64,
+            ),
         };
         let node_id = tree.arena.new_node(node);
         let node = tree
