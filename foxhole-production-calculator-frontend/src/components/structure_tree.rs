@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, collections::HashSet, rc::Rc};
 
 use foxhole_production_calculator::{StructureTree, StructureTreeNode};
 use indextree::NodeId;
@@ -114,22 +114,29 @@ fn enumerate_options(
 ) -> Html {
     let options = node.options();
     let options_ref = options.borrow();
+    let mut name_set = HashSet::new();
 
     html! {
         {
             options_ref
             .iter()
-            .map(|node_id| {
+            .filter_map(|node_id| {
                 let node = tree.get_node(*node_id).expect("Node should exist");
                 let display_text = format!("{:.3} - {}", node.count(), node.structure_name());
 
-                html! {
-                    <StructureOptionButton
-                    node_id={*node_id}
-                    tree_idx={tree_idx}
-                    active={node.is_active()}
-                    active_callback={active_callback.clone()}
-                    display_text={display_text}/>
+                if !name_set.contains(&display_text) {
+                    name_set.insert(display_text.clone());
+
+                    Some(html! {
+                        <StructureOptionButton
+                        node_id={*node_id}
+                        tree_idx={tree_idx}
+                        active={node.is_active()}
+                        active_callback={active_callback.clone()}
+                        display_text={display_text}/>
+                    })
+                } else {
+                    None
                 }
             })
             .collect::<Html>()
