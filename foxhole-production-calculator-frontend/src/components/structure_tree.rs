@@ -58,7 +58,7 @@ impl Component for StructureTreeDisplay {
                             .iter()
                             .map(|root| {
                                 html! {
-                                    <ul>
+                                    <ul class="fa-ul" style="list-style-type: none;">
                                         { process_node(root, tree, &active_callback, tree_idx) }
                                     </ul>
                                 }
@@ -86,8 +86,10 @@ fn process_node(
             // Check if node has children
             if arena_node.last_child().is_some() {
                 html! {
-                    <li><div class="buttons has-addons m0" style="margin: 0;">{format!("{}: ", node.output())}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</div>
-                        <ul style="margin-bottom: 0; margin-top: 0;">
+                    <li>
+                        <span class="fa-li"><i class="fas fa-arrow-right"></i></span>
+                        <div class="buttons has-addons m0" style="margin: 0;">{format!("{}: ", node.output())}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</div>
+                        <ul class="fa-ul" style="margin-bottom: 0; margin-top: 0; list-style-type: none;">
                         {
                             node_id.children(&tree.arena).map(|child| process_node(&child, tree, active_callback, tree_idx)).collect::<Html>()
                         }
@@ -97,6 +99,7 @@ fn process_node(
             } else {
                 html! {
                     <li>
+                        <span class="fa-li"><i class="fas fa-arrow-right"></i></span>
                         <div class="buttons has-addons m0">{format!("{}: ", node.output())}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</div>
                     </li>
                 }
