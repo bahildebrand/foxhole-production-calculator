@@ -6,3 +6,8 @@ members = [
     "foxhole-production-calculator-cli",
     "foxhole-production-calculator-frontend",
 ]
+
+[profile.release]
+lto = true
+panic = "abort"
+codegen-units = 1

@@ -14,3 +14,8 @@ strum = { version = "0.24", features = ["derive"] }
 wasm-logger = "0.2"
 web-sys = { version = "0.3", features = ["HtmlSelectElement", "HtmlButtonElement", "InputEvent"] }
 yew = "0.19"
+
+[profile.release]
+lto = true
+panic = "abort"
+codegen-units = 1
