@@ -45,6 +45,7 @@ impl Component for StructureTreeDisplay {
 
         html! {
         <div class="content">
+            <label class="label">{ "Structure Tree:" }</label>
             {
                 trees
                     .borrow()
