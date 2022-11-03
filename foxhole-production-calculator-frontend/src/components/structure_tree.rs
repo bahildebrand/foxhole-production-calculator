@@ -85,8 +85,8 @@ fn process_node(
             // Check if node has children
             if arena_node.last_child().is_some() {
                 html! {
-                    <li><div class="buttons has-addons">{format!("{}: ", node.output())}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</div>
-                        <ul>
+                    <li><div class="buttons has-addons m0" style="margin: 0;">{format!("{}: ", node.output())}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</div>
+                        <ul style="margin-bottom: 0; margin-top: 0;">
                         {
                             node_id.children(&tree.arena).map(|child| process_node(&child, tree, active_callback, tree_idx)).collect::<Html>()
                         }
@@ -96,7 +96,7 @@ fn process_node(
             } else {
                 html! {
                     <li>
-                        <div class="buttons has-addons">{format!("{}: ", node.output())}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</div>
+                        <div class="buttons has-addons m0">{format!("{}: ", node.output())}{enumerate_options(node, tree, active_callback.clone(), tree_idx)}</div>
                     </li>
                 }
             }
